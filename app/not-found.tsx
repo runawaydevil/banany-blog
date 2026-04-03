@@ -15,14 +15,14 @@ export default async function NotFound() {
     /* DB unavailable or missing in build */
   }
 
-  const themed = site?.setupComplete === true;
-  const tokens = themed
-    ? resolveThemeForSite(site)
-    : mergeTokens("paper", undefined);
-  const typo = themed
-    ? resolveTypographyForSite(site)
-    : typographyForPreset("paper");
-  const customCss = themed ? site.customCss : null;
+  let tokens = mergeTokens("paper", undefined);
+  let typo = typographyForPreset("paper");
+  let customCss: string | null = null;
+  if (site != null && site.setupComplete === true) {
+    tokens = resolveThemeForSite(site);
+    typo = resolveTypographyForSite(site);
+    customCss = site.customCss;
+  }
 
   return (
     <>
