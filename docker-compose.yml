@@ -9,7 +9,8 @@ services:
       POSTGRES_PASSWORD: banany
       POSTGRES_DB: banany
     ports:
-      - "${BANANY_DB_PORT_HOST:-5432}:5432"
+      # High host ports avoid clashing with a local Postgres (5432) or MinIO (9000/9001)
+      - "${BANANY_DB_PORT_HOST:-35432}:5432"
     volumes:
       - banany_pg:/var/lib/postgresql/data
     healthcheck:
@@ -25,8 +26,8 @@ services:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio12345
     ports:
-      - "${BANANY_MINIO_API_PORT_HOST:-9000}:9000"
-      - "${BANANY_MINIO_CONSOLE_PORT_HOST:-9001}:9001"
+      - "${BANANY_MINIO_API_PORT_HOST:-39000}:9000"
+      - "${BANANY_MINIO_CONSOLE_PORT_HOST:-39001}:9001"
     volumes:
       - banany_minio:/data
 

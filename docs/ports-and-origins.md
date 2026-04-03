@@ -28,9 +28,9 @@ These only affect **host → container** mapping in Compose. The Node process in
 | Variable | Purpose |
 |----------|---------|
 | `BANANY_APP_PORT_HOST` | Host port for the Next.js app (default **38127** in `docker-compose.prod.yml`, **3000** in dev `docker-compose.yml`) |
-| `BANANY_DB_PORT_HOST` | Dev only: Postgres on the host (default **5432**) |
-| `BANANY_MINIO_API_PORT_HOST` | Dev only: MinIO S3 API (default **9000**) |
-| `BANANY_MINIO_CONSOLE_PORT_HOST` | Dev only: MinIO console (default **9001**) |
+| `BANANY_DB_PORT_HOST` | Dev only: Postgres on the host (default **35432**, avoids local **5432**) |
+| `BANANY_MINIO_API_PORT_HOST` | Dev only: MinIO S3 API (default **39000**, avoids local **9000**) |
+| `BANANY_MINIO_CONSOLE_PORT_HOST` | Dev only: MinIO console (default **39001**) |
 
 Production Compose **does not publish** Postgres or MinIO ports; only the app service exposes a host port.
 
