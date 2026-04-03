@@ -9,7 +9,6 @@ import {
   normalizePublicOrigin,
   isLocalhostOrigin,
 } from "@/lib/public-origin";
-import { mailgunConfiguredFromEnv } from "@/lib/mailgun-env";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +30,6 @@ export async function GET() {
     where: { id: "singleton" },
   });
   const trustedPublicUrl = getTrustedAppUrl();
-  const mailgunReady = mailgunConfiguredFromEnv();
 
   if (!site) {
     return NextResponse.json({
@@ -49,7 +47,6 @@ export async function GET() {
     publicUrl: site.publicUrl,
     trustedPublicUrl,
     publicUrlEnvMismatch: publicUrlMismatch(site.publicUrl, trustedPublicUrl),
-    mailgunConfigured: mailgunReady,
     locale: site.locale,
     introSnippet: site.introSnippet,
     themePreset: site.themePreset,

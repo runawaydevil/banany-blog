@@ -14,7 +14,7 @@ import { PostMetadataPanel } from "@/components/editor/post-metadata-panel";
 import type { SaveUiState } from "@/components/editor/save-state-indicator";
 import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
 
-function toDatetimeLocalValue(d = new Date()): string {
+function toDatetimeLocalValue(d: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
@@ -37,7 +37,7 @@ export function PostForm({ initial }: { initial?: Post }) {
   const [pinned, setPinned] = useState(initial?.pinned ?? false);
   const [scheduledAt, setScheduledAt] = useState(
     initial?.scheduledAt
-      ? new Date(initial.scheduledAt).toISOString().slice(0, 16)
+      ? toDatetimeLocalValue(new Date(initial.scheduledAt))
       : toDatetimeLocalValue(),
   );
   const [metadataOpen, setMetadataOpen] = useState(false);
@@ -208,18 +208,8 @@ export function PostForm({ initial }: { initial?: Post }) {
         placeholder="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        aria-describedby="post-title-slug-hint"
         className="mb-1 w-full border-none bg-transparent px-0 py-1 text-[2.15rem] font-[family-name:var(--bb-font-heading)] font-medium leading-[1.15] tracking-tight text-[var(--bb-heading)] shadow-none placeholder:text-[var(--bb-text-muted)]/55 focus:outline-none focus:ring-0 sm:text-[2.5rem]"
       />
-      <p
-        id="post-title-slug-hint"
-        className="mb-2 text-xs text-[var(--bb-text-muted)]"
-      >
-        Enquanto o post for rascunho, a slug da URL é gerada a partir do título
-        (normalizado com <code className="text-[0.7rem]">slugify</code>
-        ). Sem título, usa-se um segmento curto aleatório. Depois de publicado, a
-        slug deixa de mudar.
-      </p>
       <textarea
         aria-label="Excerpt"
         placeholder="Optional excerpt — plain text, max 300 characters (used for SEO description)"

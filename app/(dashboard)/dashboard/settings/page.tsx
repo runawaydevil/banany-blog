@@ -5,7 +5,6 @@ import {
   getTrustedAppUrl,
   normalizePublicOrigin,
 } from "@/lib/public-origin";
-import { mailgunConfiguredFromEnv } from "@/lib/mailgun-env";
 
 export default async function SettingsPage() {
   const [site, navItems, pages] = await Promise.all([
@@ -36,7 +35,6 @@ export default async function SettingsPage() {
       pages={pages}
       trustedPublicUrl={trustedPublicUrl}
       publicUrlEnvMismatch={publicUrlEnvMismatch}
-      mailgunEnvReady={mailgunConfiguredFromEnv()}
       isProduction={process.env.NODE_ENV === "production"}
     />
   );

@@ -16,7 +16,6 @@ export function SettingsForm({
   pages,
   trustedPublicUrl,
   publicUrlEnvMismatch,
-  mailgunEnvReady,
   isProduction,
 }: {
   site: SiteSettings;
@@ -24,7 +23,6 @@ export function SettingsForm({
   pages: PageOpt[];
   trustedPublicUrl: string | null;
   publicUrlEnvMismatch: boolean;
-  mailgunEnvReady: boolean;
   isProduction: boolean;
 }) {
   const router = useRouter();
@@ -327,29 +325,6 @@ export function SettingsForm({
         <Button type="button" onClick={saveSite} disabled={saving}>
           Save newsletter options
         </Button>
-      </section>
-
-      <section className="space-y-3 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)] p-4">
-        <h2 className="text-sm font-medium text-[var(--bb-heading)]">
-          Outbound email (Mailgun)
-        </h2>
-        <p className="text-xs text-[var(--bb-text-muted)]">
-          Password reset is sent via Mailgun using server environment variables
-          only (not stored in the database). Configure{" "}
-          <code className="text-xs">MAILGUN_API_KEY</code>,{" "}
-          <code className="text-xs">MAILGUN_DOMAIN</code>, and{" "}
-          <code className="text-xs">MAILGUN_FROM</code> on the host; optional{" "}
-          <code className="text-xs">MAILGUN_REPLY_TO</code>,{" "}
-          <code className="text-xs">MAILGUN_REGION</code> (us or eu).
-        </p>
-        <p className="text-xs">
-          Status:{" "}
-          {mailgunEnvReady ? (
-            <span className="text-[var(--bb-success)]">Ready</span>
-          ) : (
-            <span className="text-[var(--bb-warning)]">Not configured</span>
-          )}
-        </p>
       </section>
 
       {msg ? <p className="text-sm text-[var(--bb-text-muted)]">{msg}</p> : null}

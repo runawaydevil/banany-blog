@@ -2,26 +2,11 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
 import { NewsletterInline } from "@/components/newsletter-inline";
-import {
-  toValidDate,
-  getYearSafeInDefaultTz,
-  toISOStringSafe,
-} from "@/lib/dates";
+import { toValidDate, toISOStringSafe } from "@/lib/dates";
 import { sanitizePostHtml } from "@/lib/sanitize-html";
 import type { Post } from "@prisma/client";
 
 const PAGE_SIZE = 20;
-
-function groupByYear(posts: Post[]) {
-  const map = new Map<number, Post[]>();
-  for (const p of posts) {
-    const d = toValidDate(p.publishedAt) ?? toValidDate(p.createdAt);
-    const y = getYearSafeInDefaultTz(d) ?? 0;
-    if (!map.has(y)) map.set(y, []);
-    map.get(y)!.push(p);
-  }
-  return [...map.entries()].sort((a, b) => b[0] - a[0]);
-}
 
 function hasRenderableBody(html: string): boolean {
   const text = html.replace(/<[^>]+>/g, "").trim();
@@ -54,7 +39,6 @@ export default async function HomePage({
 
   const pinned = posts.filter((p) => p.pinned);
   const rest = posts.filter((p) => !p.pinned);
-  const grouped = groupByYear(rest);
 
   let customHome: { title: string; content: string } | null = null;
   if (page === 1 && site?.homePageSlug) {
@@ -94,26 +78,23 @@ export default async function HomePage({
           </h2>
           <ul className="space-y-8">
             {pinned.map((p) => (
-              <PostRow key={p.id} post={p} />
+              <PostRow key={p.id} post={p} omitYear />
             ))}
           </ul>
         </section>
       ) : null}
 
-      {grouped.map(([year, list]) => (
-        <section key={year || "undated"} className="space-y-4">
-          <h2 className="text-xs font-medium uppercase tracking-widest text-[var(--bb-text-muted)]">
-            {year === 0 ? "Undated" : year}
-          </h2>
+      {rest.length > 0 ? (
+        <section className="space-y-4">
           <ul className="space-y-8 divide-y divide-[var(--bb-border)]/60">
-            {list.map((p) => (
+            {rest.map((p) => (
               <li key={p.id} className="pt-8 first:pt-0 first:border-t-0">
-                <PostRow post={p} />
+                <PostRow post={p} omitYear />
               </li>
             ))}
           </ul>
         </section>
-      ))}
+      ) : null}
 
       {total === 0 ? (
         <p className="text-sm text-[var(--bb-text-muted)]">No posts yet.</p>
@@ -168,16 +149,17 @@ export default async function HomePage({
   );
 }
 
-function PostRow({ post }: { post: Post }) {
+function PostRow({ post, omitYear }: { post: Post; omitYear?: boolean }) {
   const date = toValidDate(post.publishedAt) ?? toValidDate(post.createdAt);
   const dateIso =
     toISOStringSafe(post.publishedAt) ?? toISOStringSafe(post.createdAt);
   const dateStr = date
-    ? date.toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
+    ? date.toLocaleDateString(
+        undefined,
+        omitYear
+          ? { month: "short", day: "numeric" }
+          : { year: "numeric", month: "short", day: "numeric" },
+      )
     : null;
   const rawHtml = sanitizePostHtml(post.content);
   const showBody = hasRenderableBody(post.content);
