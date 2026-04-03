@@ -27,6 +27,3 @@ Copy [`.env.example`](.env.example) for local work, or [`.env.production.example
 
 Mailgun is configured only via `MAILGUN_*` environment variables; the dashboard does not store API keys for email.
 
----
-
-Feedback welcome at [pablomurad@pm.me](mailto:pablomurad@pm.me).

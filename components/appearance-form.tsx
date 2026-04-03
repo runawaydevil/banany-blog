@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SiteSettings } from "@prisma/client";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,9 +20,10 @@ function parseOverrides(raw: unknown): Partial<SemanticTokens> {
 
 export function AppearanceForm({ site }: { site: SiteSettings }) {
   const router = useRouter();
+  const faviconInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [themePreset, setThemePreset] = useState(site.themePreset);
   const [customCss, setCustomCss] = useState(site.customCss ?? "");
-  const [msg, setMsg] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const initialOv = useMemo(
@@ -39,7 +41,6 @@ export function AppearanceForm({ site }: { site: SiteSettings }) {
 
   async function save() {
     setSaving(true);
-    setMsg(null);
     const existing = parseOverrides(site.themeOverrides);
     const next: Record<string, string> = { ...existing };
     if (accent.trim()) next.accent = accent.trim();
@@ -58,34 +59,40 @@ export function AppearanceForm({ site }: { site: SiteSettings }) {
     });
     setSaving(false);
     if (!res.ok) {
-      setMsg("Could not save.");
+      toast.error("Could not save appearance.");
       return;
     }
-    setMsg("Saved.");
+    toast.success("Appearance saved.");
     router.refresh();
   }
 
-  async function uploadBranding(
-    kind: "favicon" | "logo" | "siteImage",
-    file: File,
-  ) {
+  async function uploadBranding(kind: "favicon" | "logo", file: File) {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("prefix", "branding");
     const res = await fetch("/api/upload", { method: "POST", body: fd });
-    if (!res.ok) return;
+    if (!res.ok) {
+      toast.error("Upload failed.");
+      return;
+    }
     const data = (await res.json()) as { id: string };
-    const field =
-      kind === "favicon"
-        ? "faviconMediaId"
-        : kind === "logo"
-          ? "logoMediaId"
-          : "siteImageMediaId";
-    await fetch("/api/site", {
+    const field = kind === "favicon" ? "faviconMediaId" : "logoMediaId";
+    const patchRes = await fetch("/api/site", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [field]: data.id }),
     });
+    if (!patchRes.ok) {
+      toast.error("Could not attach branding to the site.");
+      return;
+    }
+    toast.success(kind === "favicon" ? "Favicon updated." : "Logo updated.");
+    if (kind === "favicon" && faviconInputRef.current) {
+      faviconInputRef.current.value = "";
+    }
+    if (kind === "logo" && logoInputRef.current) {
+      logoInputRef.current.value = "";
+    }
     router.refresh();
   }
 
@@ -145,6 +152,7 @@ export function AppearanceForm({ site }: { site: SiteSettings }) {
           <label className="cursor-pointer rounded border border-[var(--bb-border)] px-2 py-1 hover:bg-[var(--bb-surface-soft)]">
             Favicon
             <input
+              ref={faviconInputRef}
               type="file"
               accept="image/*"
               className="hidden"
@@ -157,24 +165,13 @@ export function AppearanceForm({ site }: { site: SiteSettings }) {
           <label className="cursor-pointer rounded border border-[var(--bb-border)] px-2 py-1 hover:bg-[var(--bb-surface-soft)]">
             Logo
             <input
+              ref={logoInputRef}
               type="file"
               accept="image/*"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) void uploadBranding("logo", f);
-              }}
-            />
-          </label>
-          <label className="cursor-pointer rounded border border-[var(--bb-border)] px-2 py-1 hover:bg-[var(--bb-surface-soft)]">
-            Site image
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) void uploadBranding("siteImage", f);
               }}
             />
           </label>
@@ -199,7 +196,6 @@ export function AppearanceForm({ site }: { site: SiteSettings }) {
       <Button type="button" onClick={save} disabled={saving}>
         {saving ? "Saving…" : "Save appearance"}
       </Button>
-      {msg ? <p className="text-sm text-[var(--bb-text-muted)]">{msg}</p> : null}
     </div>
   );
 }

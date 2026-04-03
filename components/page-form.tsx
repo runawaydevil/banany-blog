@@ -12,6 +12,7 @@ import {
 } from "@/components/editor/editor-top-bar";
 import { PageMetadataPanel } from "@/components/editor/page-metadata-panel";
 import type { SaveUiState } from "@/components/editor/save-state-indicator";
+import { toast } from "sonner";
 
 export function PageForm({ initial }: { initial?: Page }) {
   const router = useRouter();
@@ -82,8 +83,19 @@ export function PageForm({ initial }: { initial?: Page }) {
           router.replace(`/dashboard/pages/${page.id}`);
         }
         router.refresh();
+        if (!silent) {
+          if (overrides?.published === true) {
+            toast.success(
+              initial?.published ? "Page updated." : "Page published.",
+            );
+          } else {
+            toast.success("Page saved.");
+          }
+        }
       } catch (e) {
-        setErr(e instanceof Error ? e.message : "Save failed");
+        const message = e instanceof Error ? e.message : "Save failed";
+        setErr(message);
+        if (!silent) toast.error(message);
       } finally {
         if (!silent) setSaving(false);
       }

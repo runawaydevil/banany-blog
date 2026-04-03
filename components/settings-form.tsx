@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { NavItem, SiteSettings } from "@prisma/client";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,13 +58,11 @@ export function SettingsForm({
       : [{ label: "Archive", href: "/archive", order: 0 }],
   );
 
-  const [msg, setMsg] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [syncingUrl, setSyncingUrl] = useState(false);
 
   async function saveSite() {
     setSaving(true);
-    setMsg(null);
     const body: Record<string, unknown> = {
       siteTitle,
       browserTitle: browserTitle.trim() || null,
@@ -84,16 +83,17 @@ export function SettingsForm({
     setSaving(false);
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
-      setMsg((d as { error?: string }).error || "Could not save settings.");
+      toast.error(
+        (d as { error?: string }).error || "Could not save settings.",
+      );
       return;
     }
-    setMsg("Settings saved.");
+    toast.success("Settings saved.");
     router.refresh();
   }
 
   async function applyEnvPublicUrl() {
     setSyncingUrl(true);
-    setMsg(null);
     const res = await fetch("/api/site", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -102,16 +102,15 @@ export function SettingsForm({
     setSyncingUrl(false);
     const d = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setMsg((d as { error?: string }).error || "Could not sync URL.");
+      toast.error((d as { error?: string }).error || "Could not sync URL.");
       return;
     }
     if (trustedPublicUrl) setPublicUrl(trustedPublicUrl);
-    setMsg("Public URL updated from environment.");
+    toast.success("Public URL updated from environment.");
     router.refresh();
   }
 
   async function saveNav() {
-    setMsg(null);
     const res = await fetch("/api/nav", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -123,11 +122,12 @@ export function SettingsForm({
         })),
       ),
     });
-    if (!res.ok) setMsg("Could not save navigation.");
-    else {
-      setMsg("Navigation saved.");
-      router.refresh();
+    if (!res.ok) {
+      toast.error("Could not save navigation.");
+      return;
     }
+    toast.success("Navigation saved.");
+    router.refresh();
   }
 
   function addNavRow() {
@@ -247,7 +247,7 @@ export function SettingsForm({
         {nav.map((row, i) => (
           <div key={i} className="flex flex-wrap gap-2">
             <Input
-              className="flex-1 min-w-[100px]"
+              className="min-w-[100px] flex-1"
               placeholder="Label"
               value={row.label}
               onChange={(e) => {
@@ -257,7 +257,7 @@ export function SettingsForm({
               }}
             />
             <Input
-              className="flex-1 min-w-[120px]"
+              className="min-w-[120px] flex-1"
               placeholder="/path"
               value={row.href}
               onChange={(e) => {
@@ -269,18 +269,23 @@ export function SettingsForm({
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              className="h-9 shrink-0"
               onClick={() => setNav(nav.filter((_, j) => j !== i))}
             >
               Remove
             </Button>
           </div>
         ))}
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={addNavRow}>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9"
+            onClick={addNavRow}
+          >
             Add link
           </Button>
-          <Button type="button" size="sm" onClick={saveNav}>
+          <Button type="button" className="h-9" onClick={saveNav}>
             Save navigation
           </Button>
         </div>
@@ -326,8 +331,6 @@ export function SettingsForm({
           Save newsletter options
         </Button>
       </section>
-
-      {msg ? <p className="text-sm text-[var(--bb-text-muted)]">{msg}</p> : null}
     </div>
   );
 }

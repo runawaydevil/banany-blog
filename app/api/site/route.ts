@@ -155,6 +155,7 @@ export async function PATCH(req: Request) {
 
   if (Object.prototype.hasOwnProperty.call(parsed.data, "faviconMediaId")) {
     revalidatePath("/", "layout");
+    revalidatePath("/icon");
   }
 
   return NextResponse.json({ ok: true, id: site.id });

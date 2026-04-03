@@ -8,13 +8,11 @@ const REPO = "https://github.com/runawaydevil/banany-blog";
 export async function PublicChrome({
   site,
   nav,
-  siteImageUrl,
   logoUrl,
   children,
 }: {
   site: SiteSettings;
   nav: NavItem[];
-  siteImageUrl: string | null;
   logoUrl: string | null;
   children: React.ReactNode;
 }) {
@@ -36,16 +34,7 @@ export async function PublicChrome({
       <header className="bg-[var(--bb-bg)]">
         <div className="mx-auto flex max-w-2xl flex-row items-center justify-between gap-3 px-4 py-4 sm:py-5">
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-            {siteImageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={siteImageUrl}
-                alt=""
-                width={44}
-                height={44}
-                className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-[var(--bb-border)]/50"
-              />
-            ) : logoUrl ? (
+            {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={logoUrl}

@@ -20,7 +20,6 @@ export default async function PublicLayout({
   const tokens = resolveThemeForSite(site);
   const typo = resolveTypographyForSite(site);
   const nav = await prisma.navItem.findMany({ orderBy: { order: "asc" } });
-  const siteImageUrl = await mediaUrlById(site.siteImageMediaId);
   const logoUrl = await mediaUrlById(site.logoMediaId);
 
   return (
@@ -32,12 +31,7 @@ export default async function PublicLayout({
         fontMonoKey={typo.mono}
         customCss={site.customCss}
       />
-      <PublicChrome
-        site={site}
-        nav={nav}
-        siteImageUrl={siteImageUrl}
-        logoUrl={logoUrl}
-      >
+      <PublicChrome site={site} nav={nav} logoUrl={logoUrl}>
         {children}
       </PublicChrome>
     </>

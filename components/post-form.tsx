@@ -13,6 +13,7 @@ import {
 import { PostMetadataPanel } from "@/components/editor/post-metadata-panel";
 import type { SaveUiState } from "@/components/editor/save-state-indicator";
 import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
+import { toast } from "sonner";
 
 function toDatetimeLocalValue(d: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -103,6 +104,7 @@ export function PostForm({ initial }: { initial?: Post }) {
       if (!initial && !hasEditorBody(content)) {
         if (!silent) {
           setErr("Add text or an image before saving.");
+          toast.error("Add text or an image before saving.");
         }
         return false;
       }
@@ -129,9 +131,20 @@ export function PostForm({ initial }: { initial?: Post }) {
           router.replace(`/dashboard/posts/${saved.id}`);
         }
         router.refresh();
+        if (!silent) {
+          if (overrides?.published === true) {
+            toast.success(
+              initial?.published ? "Post updated." : "Post published.",
+            );
+          } else {
+            toast.success("Post saved.");
+          }
+        }
         return true;
       } catch (e) {
-        setErr(e instanceof Error ? e.message : "Save failed");
+        const message = e instanceof Error ? e.message : "Save failed";
+        setErr(message);
+        if (!silent) toast.error(message);
         return false;
       } finally {
         if (!silent) setSaving(false);

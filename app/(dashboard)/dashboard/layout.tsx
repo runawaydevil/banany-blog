@@ -8,6 +8,7 @@ import {
 } from "@/lib/site";
 import { ThemeInject } from "@/components/theme-inject";
 import { DashboardHeader } from "@/components/dashboard-header";
+import { DashboardToaster } from "@/components/dashboard-toaster";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,7 @@ export default async function DashboardLayout({
         customCss={site.customCss}
       />
       <div className="min-h-screen bg-[var(--bb-bg)]">
+        <DashboardToaster />
         <DashboardHeader site={site} />
         <div className="mx-auto max-w-5xl px-4 py-8">{children}</div>
       </div>
