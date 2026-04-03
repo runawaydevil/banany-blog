@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  name                String?
+  passwordHash        String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  passwordResetTokens PasswordResetToken[]
+}
+
+model SiteSettings {
+  id     String @id @default("singleton")
+
+  siteTitle      String  @default("Banany Blog")
+  browserTitle   String?
+  dashboardTitle String?
+  publicUrl      String  @default("http://localhost:3000")
+  locale         String  @default("en")
+  introSnippet   String? @db.Text
+
+  themePreset    String  @default("paper")
+  themeOverrides Json?
+  customCss      String? @db.Text
+
+  fontBodyKey    String @default("newsreader")
+  fontHeadingKey String @default("newsreader")
+  fontMonoKey    String @default("ibm-plex-mono")
+
+  faviconMediaId   String?
+  siteImageMediaId String?
+  logoMediaId      String?
+
+  newsletterEnabledHome Boolean @default(false)
+  newsletterEnabledPost Boolean @default(false)
+
+  setupComplete Boolean @default(false)
+  homePageSlug  String?
+
+  seoDescription String?
+  seoOgImageId   String?
+
+  updatedAt DateTime @updatedAt
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  url       String
+  mimeType  String
+  size      Int
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now())
+}
+
+model FontAsset {
+  id         String   @id @default(cuid())
+  slotHint   String?
+  familyName String
+  key        String   @unique
+  url        String
+  format     String
+  weight     String   @default("400")
+  style      String   @default("normal")
+  createdAt  DateTime @default(now())
+}
+
+enum PostType {
+  NOTE
+  POST
+  PHOTO
+  LINK
+  QUOTE
+  REPLY
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  type        PostType  @default(POST)
+  title       String?
+  slug        String    @unique
+  content     String    @db.Text
+  excerpt     String?   @db.VarChar(300)
+  published   Boolean   @default(false)
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  pinned      Boolean   @default(false)
+  tags        String[]  @default([])
+  linkUrl     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Page {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String    @db.Text
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model NavItem {
+  id    String @id @default(cuid())
+  label String
+  href  String
+  order Int    @default(0)
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  confirmed Boolean  @default(true)
+  token     String?  @unique
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  /// SHA-256 hex of the raw token sent by email (raw token is never stored)
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}

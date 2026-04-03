@@ -1,0 +1,80 @@
+# Production-style stack: app on a high host port; Postgres + MinIO internal-only.
+# docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+# See .env.production.example (template) and docs/deploy-external-reverse-proxy.md
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: banany
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-banany}
+      POSTGRES_DB: banany
+    volumes:
+      - banany_pg_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U banany -d banany"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-minio-password}
+    volumes:
+      - banany_minio_prod:/data
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-minio-password}
+      S3_BUCKET: ${S3_BUCKET:-banany}
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        sleep 3
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"
+        mc mb "local/$$S3_BUCKET" --ignore-existing
+        exit 0
+    restart: "no"
+
+  app:
+    build: .
+    ports:
+      - "${BANANY_APP_PORT_HOST:-38127}:3000"
+    environment:
+      DATABASE_URL: postgresql://banany:${POSTGRES_PASSWORD:-banany}@db:5432/banany
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET}
+      APP_URL: ${APP_URL:?set APP_URL to your public https origin}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:?set NEXTAUTH_URL (usually same as APP_URL)}
+      BANANY_BEHIND_HTTPS_PROXY: ${BANANY_BEHIND_HTTPS_PROXY:-}
+      # Optional; mirror APP_URL if anything client-side needs an absolute origin
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-}
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minio}
+      S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-change-minio-password}
+      S3_BUCKET: ${S3_BUCKET:-banany}
+      MAILGUN_API_KEY: ${MAILGUN_API_KEY:-}
+      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN:-}
+      MAILGUN_FROM: ${MAILGUN_FROM:-}
+      MAILGUN_REPLY_TO: ${MAILGUN_REPLY_TO:-}
+      MAILGUN_REGION: ${MAILGUN_REGION:-us}
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  banany_pg_prod:
+  banany_minio_prod:

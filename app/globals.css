@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+:root {
+  --bb-bg: #faf8f5;
+  --bb-surface: #ffffff;
+  --bb-surface-soft: #f3f0ea;
+  --bb-surface-elevated: #ffffff;
+  --bb-text: #2c2825;
+  --bb-text-muted: #6b6560;
+  --bb-heading: #1a1715;
+  --bb-border: #e5e0d8;
+  --bb-link: #6b5c4c;
+  --bb-link-hover: #4a3f35;
+  --bb-accent: #c4a574;
+  --bb-accent-fg: #2c2825;
+  --bb-input-bg: #ffffff;
+  --bb-input-text: #2c2825;
+  --bb-focus-ring: #c4a574;
+  --bb-success: #4a7c59;
+  --bb-warning: #b8860b;
+  --bb-danger: #a94442;
+  --bb-font-body: "Newsreader", Georgia, serif;
+  --bb-font-heading: "Newsreader", Georgia, serif;
+  --bb-font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@theme inline {
+  --color-bb-bg: var(--bb-bg);
+  --color-bb-surface: var(--bb-surface);
+  --color-bb-text: var(--bb-text);
+  --color-bb-muted: var(--bb-text-muted);
+  --color-bb-border: var(--bb-border);
+  --color-bb-accent: var(--bb-accent);
+}
+
+body {
+  background: var(--bb-bg);
+  color: var(--bb-text);
+  font-family: var(--bb-font-body);
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--bb-font-heading);
+  color: var(--bb-heading);
+}
+
+a {
+  color: var(--bb-link);
+}
+a:hover {
+  color: var(--bb-link-hover);
+}
+
+.prose-bb {
+  max-width: 38rem;
+  margin-inline: auto;
+}
+
+.prose-bb pre {
+  background: var(--bb-surface-soft);
+  border: 1px solid var(--bb-border);
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  font-family: var(--bb-font-mono);
+  font-size: 0.875rem;
+}
+
+.prose-bb blockquote {
+  border-left: 2px solid var(--bb-border);
+  padding-left: 1rem;
+  color: var(--bb-text-muted);
+}
+
+/* Writing canvas (Tiptap) */
+.bb-editor-root .ProseMirror {
+  outline: none;
+}
+
+.bb-editor-root .ProseMirror ::selection {
+  background: color-mix(in srgb, var(--bb-accent) 32%, transparent);
+}
+
+.bb-editor-root .ProseMirror-focused {
+  outline: none;
+}
+
+.bb-editor-root p.is-editor-empty:first-child::before {
+  color: var(--bb-text-muted);
+  opacity: 0.45;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.bb-editor-link {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: text;
+}
+
+.bb-editor-blockquote {
+  border-left: 3px solid color-mix(in srgb, var(--bb-accent) 55%, var(--bb-border));
+  padding-left: 1.1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: var(--bb-text-muted);
+}
+
+.bb-editor-code-block {
+  background: var(--bb-surface-soft);
+  border: 1px solid var(--bb-border);
+  border-radius: 0.375rem;
+  padding: 0.85rem 1rem;
+  font-family: var(--bb-font-mono);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.bb-editor-root .ProseMirror-selectednode.bb-editor-image,
+.bb-editor-root .ProseMirror-selectednode img {
+  outline: 2px solid var(--bb-focus-ring);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.bb-editor-root h2 {
+  font-size: 1.45rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.bb-editor-root h3 {
+  font-size: 1.2rem;
+  margin-top: 1.35rem;
+  margin-bottom: 0.4rem;
+}
