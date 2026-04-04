@@ -5,6 +5,7 @@ import { slugify } from "@/lib/utils";
 import { slugBaseFromPostInput } from "@/lib/slug-base";
 import { nanoid } from "nanoid";
 import { z } from "zod";
+import { reconcileMediaUsage } from "@/lib/media";
 
 export const dynamic = "force-dynamic";
 
@@ -61,5 +62,6 @@ export async function POST(req: Request) {
       publishedAt,
     },
   });
+  await reconcileMediaUsage();
   return NextResponse.json(page);
 }

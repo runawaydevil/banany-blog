@@ -2,11 +2,11 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 export default async function DashboardHome() {
-  const [postCount, pageCount, mediaCount, subCount] = await Promise.all([
+  const [postCount, pageCount, subCount, campaignCount] = await Promise.all([
     prisma.post.count(),
     prisma.page.count(),
-    prisma.media.count(),
-    prisma.subscriber.count(),
+    prisma.subscriber.count({ where: { unsubscribedAt: null } }),
+    prisma.newsletterCampaign.count(),
   ]);
 
   return (
@@ -20,8 +20,16 @@ export default async function DashboardHome() {
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Posts" value={postCount} href="/dashboard/posts" />
         <Stat label="Pages" value={pageCount} href="/dashboard/pages" />
-        <Stat label="Media" value={mediaCount} href="/dashboard/media" />
-        <Stat label="Subscribers" value={subCount} href="/dashboard/settings" />
+        <Stat
+          label="Subscribers"
+          value={subCount}
+          href="/dashboard/newsletter"
+        />
+        <Stat
+          label="Campaigns"
+          value={campaignCount}
+          href="/dashboard/newsletter"
+        />
       </ul>
     </div>
   );

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 function dispositionForMime(ct: string): string {
   const base = ct.split(";")[0]!.trim().toLowerCase();
-  if (base.startsWith("image/") || base === "font/woff" || base === "font/woff2") {
+  if (base.startsWith("image/")) {
     return "inline";
   }
   return "attachment";

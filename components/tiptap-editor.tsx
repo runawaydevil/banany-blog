@@ -10,10 +10,12 @@ export function TiptapEditor({
   content,
   onChange,
   placeholder,
+  allowImages = true,
 }: {
   content: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  allowImages?: boolean;
 }) {
   const insertImage = useCallback((ed: Editor) => {
     const input = document.createElement("input");
@@ -34,7 +36,9 @@ export function TiptapEditor({
   }, []);
 
   const editor = useEditor({
-    extensions: getBananyEditorExtensions(placeholder ?? "Tell your story…"),
+    extensions: getBananyEditorExtensions(placeholder ?? "Tell your story…", {
+      allowImages,
+    }),
     content,
     immediatelyRender: false,
     editorProps: {
@@ -61,7 +65,11 @@ export function TiptapEditor({
   return (
     <div className="relative">
       <EditorBubbleMenu editor={editor} />
-      <EditorFloatingMenu editor={editor} onInsertImage={onInsertImage} />
+      <EditorFloatingMenu
+        editor={editor}
+        onInsertImage={onInsertImage}
+        allowImages={allowImages}
+      />
       <EditorContent editor={editor} />
     </div>
   );

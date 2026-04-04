@@ -36,12 +36,7 @@ export async function uploadBuffer(params: {
           ? "webp"
           : params.mimeType === "image/gif"
             ? "gif"
-            : params.mimeType === "font/woff"
-              ? "woff"
-              : params.mimeType === "font/woff2" ||
-                  params.mimeType.includes("font")
-                ? "woff2"
-                : "bin";
+            : "bin";
 
   const key = `${params.prefix || "uploads"}/${nanoid(16)}.${ext}`;
   const publicBase = process.env.S3_PUBLIC_URL?.replace(/\/$/, "") || "";

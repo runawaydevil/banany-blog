@@ -10,7 +10,7 @@ const messages: Record<
     "nav.dashboard": "Dashboard",
     "nav.posts": "Posts",
     "nav.pages": "Pages",
-    "nav.media": "Media",
+    "nav.newsletter": "Newsletter",
     "nav.appearance": "Appearance",
     "nav.settings": "Settings",
     "nav.home": "Home",
@@ -21,13 +21,13 @@ const messages: Record<
     "setup.title": "Welcome to Banany Blog",
     "newsletter.placeholder": "Your email",
     "newsletter.button": "Subscribe",
-    "newsletter.success": "Thanks — check your inbox.",
+    "newsletter.success": "Thanks — you're subscribed.",
   },
   pt: {
     "nav.dashboard": "Painel",
     "nav.posts": "Posts",
     "nav.pages": "Páginas",
-    "nav.media": "Mídia",
+    "nav.newsletter": "Newsletter",
     "nav.appearance": "Aparência",
     "nav.settings": "Configurações",
     "nav.home": "Início",
@@ -38,7 +38,7 @@ const messages: Record<
     "setup.title": "Bem-vindo ao Banany Blog",
     "newsletter.placeholder": "Seu email",
     "newsletter.button": "Inscrever",
-    "newsletter.success": "Obrigado — verifique seu email.",
+    "newsletter.success": "Obrigado — inscrição concluída.",
   },
 };
 

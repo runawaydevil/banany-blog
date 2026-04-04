@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PRESET_LABELS, type ThemePresetId } from "@/lib/themes";
 import type { SemanticTokens } from "@/lib/themes";
+import { DEFAULT_BRANDING_LOGO } from "@/lib/branding";
 
 const PRESETS = Object.keys(PRESET_LABELS) as ThemePresetId[];
 
@@ -18,7 +19,95 @@ function parseOverrides(raw: unknown): Partial<SemanticTokens> {
   return raw as Partial<SemanticTokens>;
 }
 
-export function AppearanceForm({ site }: { site: SiteSettings }) {
+function AssetCard({
+  currentUrl,
+  emptyLabel,
+  inputRef,
+  kind,
+  onUpload,
+  onRemove,
+}: {
+  currentUrl: string | null;
+  emptyLabel: string;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  kind: "favicon" | "logo";
+  onUpload: (kind: "favicon" | "logo", file: File) => Promise<void>;
+  onRemove: (kind: "favicon" | "logo") => Promise<void>;
+}) {
+  const previewUrl =
+    currentUrl || (kind === "logo" ? DEFAULT_BRANDING_LOGO : null);
+
+  return (
+    <div className="space-y-3 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface-soft)]/55 p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-[var(--bb-heading)]">
+            {kind === "favicon" ? "Favicon" : "Logo"}
+          </p>
+          <p className="text-xs text-[var(--bb-text-muted)]">
+            {currentUrl ? "Current asset attached." : emptyLabel}
+          </p>
+        </div>
+        {previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={previewUrl}
+            alt=""
+            width={kind === "favicon" ? 32 : 72}
+            height={kind === "favicon" ? 32 : 72}
+            className={
+              kind === "favicon"
+                ? "h-8 w-8 rounded-sm border border-[var(--bb-border)] bg-[var(--bb-surface)] object-contain p-1"
+                : "h-14 w-14 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)] object-contain p-1.5"
+            }
+          />
+        ) : (
+          <div className="flex h-8 w-8 items-center justify-center rounded-sm border border-dashed border-[var(--bb-border)] text-[10px] text-[var(--bb-text-muted)]">
+            none
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <label className="cursor-pointer">
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void onUpload(kind, file);
+            }}
+          />
+          <span className="inline-flex h-8 items-center justify-center rounded-md border border-[var(--bb-border)] px-3 text-xs font-medium text-[var(--bb-text)] transition-colors hover:bg-[var(--bb-surface)]">
+            {currentUrl ? "Replace" : "Upload"}
+          </span>
+        </label>
+        {currentUrl ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => void onRemove(kind)}
+          >
+            Remove
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+export function AppearanceForm({
+  site,
+  faviconUrl,
+  logoUrl,
+}: {
+  site: SiteSettings;
+  faviconUrl: string | null;
+  logoUrl: string | null;
+}) {
   const router = useRouter();
   const faviconInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -96,6 +185,21 @@ export function AppearanceForm({ site }: { site: SiteSettings }) {
     router.refresh();
   }
 
+  async function removeBranding(kind: "favicon" | "logo") {
+    const field = kind === "favicon" ? "faviconMediaId" : "logoMediaId";
+    const res = await fetch("/api/site", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [field]: null }),
+    });
+    if (!res.ok) {
+      toast.error("Could not remove branding.");
+      return;
+    }
+    toast.success(kind === "favicon" ? "Favicon removed." : "Logo removed.");
+    router.refresh();
+  }
+
   return (
     <div className="mx-auto max-w-xl space-y-8">
       <h1 className="font-[family-name:var(--bb-font-heading)] text-2xl text-[var(--bb-heading)]">
@@ -111,16 +215,15 @@ export function AppearanceForm({ site }: { site: SiteSettings }) {
           value={themePreset}
           onChange={(e) => setThemePreset(e.target.value)}
         >
-          {PRESETS.map((p) => (
-            <option key={p} value={p}>
-              {PRESET_LABELS[p]}
+          {PRESETS.map((preset) => (
+            <option key={preset} value={preset}>
+              {PRESET_LABELS[preset]}
             </option>
           ))}
         </select>
         <p className="text-xs text-[var(--bb-text-muted)]">
-          Typography is paired with each preset (editorial for Paper/Ink; clear
-          sans for Catppuccin). Optional hex overrides for accent and link (e.g.
-          #c4a574).
+          Typography stays locked to the preset. Accent and link overrides are
+          optional and apply on top of the preset tokens.
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
           <div>
@@ -146,35 +249,25 @@ export function AppearanceForm({ site }: { site: SiteSettings }) {
 
       <section className="space-y-3 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)] p-4">
         <h2 className="text-sm font-medium text-[var(--bb-heading)]">
-          Branding uploads
+          Branding assets
         </h2>
-        <div className="flex flex-wrap gap-3 text-xs">
-          <label className="cursor-pointer rounded border border-[var(--bb-border)] px-2 py-1 hover:bg-[var(--bb-surface-soft)]">
-            Favicon
-            <input
-              ref={faviconInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) void uploadBranding("favicon", f);
-              }}
-            />
-          </label>
-          <label className="cursor-pointer rounded border border-[var(--bb-border)] px-2 py-1 hover:bg-[var(--bb-surface-soft)]">
-            Logo
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) void uploadBranding("logo", f);
-              }}
-            />
-          </label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <AssetCard
+            currentUrl={faviconUrl}
+            emptyLabel="No custom favicon yet."
+            inputRef={faviconInputRef}
+            kind="favicon"
+            onUpload={uploadBranding}
+            onRemove={removeBranding}
+          />
+          <AssetCard
+            currentUrl={logoUrl}
+            emptyLabel="Using the default Banany mark."
+            inputRef={logoInputRef}
+            kind="logo"
+            onUpload={uploadBranding}
+            onRemove={removeBranding}
+          />
         </div>
       </section>
 
@@ -183,7 +276,8 @@ export function AppearanceForm({ site }: { site: SiteSettings }) {
           Custom CSS
         </h2>
         <p className="text-xs text-[var(--bb-text-muted)]">
-          Applied after theme tokens. Max 120KB server-side.
+          Injected after theme variables so your rules win predictably. Server
+          limit: 120KB.
         </p>
         <Textarea
           value={customCss}

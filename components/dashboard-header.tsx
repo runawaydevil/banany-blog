@@ -12,7 +12,7 @@ const links = [
   { href: "/dashboard", key: "nav.dashboard" as const },
   { href: "/dashboard/posts", key: "nav.posts" as const },
   { href: "/dashboard/pages", key: "nav.pages" as const },
-  { href: "/dashboard/media", key: "nav.media" as const },
+  { href: "/dashboard/newsletter", key: "nav.newsletter" as const },
   { href: "/dashboard/appearance", key: "nav.appearance" as const },
   { href: "/dashboard/settings", key: "nav.settings" as const },
 ];
@@ -24,7 +24,13 @@ function navActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function DashboardHeader({ site }: { site: SiteSettings }) {
+export function DashboardHeader({
+  site,
+  logoUrl,
+}: {
+  site: SiteSettings;
+  logoUrl: string | null;
+}) {
   const loc = site.locale;
   const title = site.dashboardTitle || site.siteTitle;
   const pathname = usePathname() ?? "";
@@ -43,11 +49,11 @@ export function DashboardHeader({ site }: { site: SiteSettings }) {
         <div className="flex min-w-0 shrink items-center gap-2 sm:gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={DEFAULT_BRANDING_LOGO}
-            alt="Banany Blog"
+            src={logoUrl || DEFAULT_BRANDING_LOGO}
+            alt=""
             width={32}
             height={32}
-            className="h-8 w-8 shrink-0 opacity-90"
+            className="h-8 w-8 shrink-0 object-contain opacity-90"
           />
           <span className="truncate font-[family-name:var(--bb-font-heading)] text-sm font-medium text-[var(--bb-heading)]">
             {title}

@@ -1,7 +1,7 @@
 import { readFile } from "fs/promises";
 import path from "path";
 import { getSiteSettings } from "@/lib/site";
-import { mediaUrlById } from "@/lib/media";
+import { readMediaContentById } from "@/lib/media";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,24 +17,14 @@ const FALLBACK_SVG = `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://w
 
 export async function GET() {
   const site = await getSiteSettings();
-  const url = await mediaUrlById(site?.faviconMediaId);
-  if (url) {
-    try {
-      const r = await fetch(url, { cache: "no-store" });
-      if (r.ok) {
-        const buf = await r.arrayBuffer();
-        const ct =
-          r.headers.get("content-type")?.split(";")[0]?.trim() || "image/png";
-        return new Response(buf, {
-          headers: {
-            "Content-Type": ct,
-            "Cache-Control": "no-store, must-revalidate",
-          },
-        });
-      }
-    } catch {
-      /* fall through */
-    }
+  const asset = await readMediaContentById(site?.faviconMediaId);
+  if (asset) {
+    return new Response(Buffer.from(asset.body), {
+      headers: {
+        "Content-Type": asset.contentType,
+        "Cache-Control": "no-store, must-revalidate",
+      },
+    });
   }
 
   try {

@@ -8,6 +8,7 @@ import { z } from "zod";
 import { PostType } from "@prisma/client";
 import { scheduledAtInPastMessage } from "@/lib/post-scheduled-at";
 import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
+import { reconcileMediaUsage } from "@/lib/media";
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +114,7 @@ export async function PATCH(
     where: { id },
     data: data as object,
   });
+  await reconcileMediaUsage();
   return NextResponse.json(post);
 }
 
@@ -126,5 +128,6 @@ export async function DELETE(
   }
   const { id } = await ctx.params;
   await prisma.post.delete({ where: { id } });
+  await reconcileMediaUsage();
   return NextResponse.json({ ok: true });
 }

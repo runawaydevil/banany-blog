@@ -1,4 +1,4 @@
-import { Extension } from "@tiptap/core";
+import { Extension, type AnyExtension } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -31,8 +31,13 @@ const LinkKeyboard = Extension.create({
   },
 });
 
-export function getBananyEditorExtensions(placeholder = "Tell your story…") {
-  return [
+export function getBananyEditorExtensions(
+  placeholder = "Tell your story…",
+  options?: { allowImages?: boolean },
+) {
+  const allowImages = options?.allowImages ?? true;
+
+  const extensions: AnyExtension[] = [
     StarterKit.configure({
       heading: { levels: [2, 3] },
       blockquote: {
@@ -54,10 +59,17 @@ export function getBananyEditorExtensions(placeholder = "Tell your story…") {
       showOnlyWhenEditable: true,
       showOnlyCurrent: true,
     }),
-    Image.configure({
-      inline: false,
-      allowBase64: false,
-      HTMLAttributes: { class: "bb-editor-image" },
-    }),
   ];
+
+  if (allowImages) {
+    extensions.push(
+      Image.configure({
+        inline: false,
+        allowBase64: false,
+        HTMLAttributes: { class: "bb-editor-image" },
+      }),
+    );
+  }
+
+  return extensions;
 }

@@ -6,6 +6,7 @@ import {
   resolveThemeForSite,
   resolveTypographyForSite,
 } from "@/lib/site";
+import { mediaUrlById, runMediaRolloutCleanupOnce } from "@/lib/media";
 import { ThemeInject } from "@/components/theme-inject";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { DashboardToaster } from "@/components/dashboard-toaster";
@@ -36,8 +37,11 @@ export default async function DashboardLayout({
     redirect("/setup");
   }
 
+  await runMediaRolloutCleanupOnce();
+
   const tokens = resolveThemeForSite(site);
   const typo = resolveTypographyForSite(site);
+  const logoUrl = await mediaUrlById(site.logoMediaId);
 
   return (
     <>
@@ -50,7 +54,7 @@ export default async function DashboardLayout({
       />
       <div className="min-h-screen bg-[var(--bb-bg)]">
         <DashboardToaster />
-        <DashboardHeader site={site} />
+        <DashboardHeader site={site} logoUrl={logoUrl} />
         <div className="mx-auto max-w-5xl px-4 py-8">{children}</div>
       </div>
     </>

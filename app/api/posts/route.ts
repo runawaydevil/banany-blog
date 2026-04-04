@@ -8,6 +8,7 @@ import { z } from "zod";
 import { PostType } from "@prisma/client";
 import { scheduledAtInPastMessage } from "@/lib/post-scheduled-at";
 import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
+import { reconcileMediaUsage } from "@/lib/media";
 
 export const dynamic = "force-dynamic";
 
@@ -95,5 +96,6 @@ export async function POST(req: Request) {
     },
   });
 
+  await reconcileMediaUsage();
   return NextResponse.json(post);
 }

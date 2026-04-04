@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import { slugify } from "@/lib/utils";
 import { slugBaseFromPostInput } from "@/lib/slug-base";
 import { z } from "zod";
+import { reconcileMediaUsage } from "@/lib/media";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +90,7 @@ export async function PATCH(
     where: { id },
     data: data as object,
   });
+  await reconcileMediaUsage();
   return NextResponse.json(page);
 }
 
@@ -102,5 +104,6 @@ export async function DELETE(
   }
   const { id } = await ctx.params;
   await prisma.page.delete({ where: { id } });
+  await reconcileMediaUsage();
   return NextResponse.json({ ok: true });
 }

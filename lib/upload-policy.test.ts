@@ -9,7 +9,7 @@ describe("isAllowedUploadPrefix", () => {
   it("allows known prefixes only", () => {
     expect(isAllowedUploadPrefix("uploads")).toBe(true);
     expect(isAllowedUploadPrefix("branding")).toBe(true);
-    expect(isAllowedUploadPrefix("fonts")).toBe(true);
+    expect(isAllowedUploadPrefix("fonts")).toBe(false);
     expect(isAllowedUploadPrefix("../evil")).toBe(false);
     expect(isAllowedUploadPrefix("uploads/../x")).toBe(false);
   });
@@ -21,7 +21,6 @@ describe("classifyUploadMime", () => {
       classifyUploadMime(
         { mime: "image/svg+xml", ext: "svg" } as import("file-type").FileTypeResult,
         "image/svg+xml",
-        "x.svg",
       ),
     ).toBeNull();
   });
@@ -30,15 +29,13 @@ describe("classifyUploadMime", () => {
     const r = classifyUploadMime(
       { mime: "image/png", ext: "png" } as import("file-type").FileTypeResult,
       "image/png",
-      "a.png",
     );
     expect(r?.kind).toBe("raster");
   });
 
-  it("accepts woff2 by filename when octet-stream", () => {
-    const r = classifyUploadMime(undefined, "application/octet-stream", "f.woff2");
-    expect(r?.kind).toBe("font");
-    expect(r?.mime).toBe("font/woff2");
+  it("rejects fonts", () => {
+    const r = classifyUploadMime(undefined, "application/octet-stream");
+    expect(r).toBeNull();
   });
 });
 

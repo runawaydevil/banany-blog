@@ -3,7 +3,8 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isThemePresetId, typographyForPreset } from "@/lib/themes";
+import { isThemePresetId } from "@/lib/themes";
+import { reconcileMediaUsage } from "@/lib/media";
 import {
   getTrustedAppUrl,
   normalizePublicOrigin,
@@ -51,11 +52,7 @@ export async function GET() {
     introSnippet: site.introSnippet,
     themePreset: site.themePreset,
     themeOverrides: site.themeOverrides,
-    fontBodyKey: site.fontBodyKey,
-    fontHeadingKey: site.fontHeadingKey,
-    fontMonoKey: site.fontMonoKey,
     faviconMediaId: site.faviconMediaId,
-    siteImageMediaId: site.siteImageMediaId,
     logoMediaId: site.logoMediaId,
     newsletterEnabledHome: site.newsletterEnabledHome,
     newsletterEnabledPost: site.newsletterEnabledPost,
@@ -76,7 +73,6 @@ const patchSchema = z
     themeOverrides: z.record(z.string(), z.string()).nullable().optional(),
     customCss: z.string().max(120_000).nullable().optional(),
     faviconMediaId: z.string().nullable().optional(),
-    siteImageMediaId: z.string().nullable().optional(),
     logoMediaId: z.string().nullable().optional(),
     newsletterEnabledHome: z.boolean().optional(),
     newsletterEnabledPost: z.boolean().optional(),
@@ -135,12 +131,7 @@ export async function PATCH(req: Request) {
   }
 
   if (themePreset !== undefined) {
-    data.themePreset = themePreset;
-    const preset = isThemePresetId(themePreset) ? themePreset : "paper";
-    const typo = typographyForPreset(preset);
-    data.fontBodyKey = typo.body;
-    data.fontHeadingKey = typo.heading;
-    data.fontMonoKey = typo.mono;
+    data.themePreset = isThemePresetId(themePreset) ? themePreset : "paper";
   }
   if (themeOverrides === null) {
     data.themeOverrides = Prisma.JsonNull;
@@ -153,10 +144,17 @@ export async function PATCH(req: Request) {
     data,
   });
 
-  if (Object.prototype.hasOwnProperty.call(parsed.data, "faviconMediaId")) {
-    revalidatePath("/", "layout");
-    revalidatePath("/icon");
+  if (
+    Object.prototype.hasOwnProperty.call(parsed.data, "faviconMediaId") ||
+    Object.prototype.hasOwnProperty.call(parsed.data, "logoMediaId")
+  ) {
+    await reconcileMediaUsage();
   }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/dashboard", "layout");
+  revalidatePath("/icon");
+  revalidatePath("/login");
 
   return NextResponse.json({ ok: true, id: site.id });
 }

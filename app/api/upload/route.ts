@@ -67,7 +67,7 @@ export async function POST(req: Request) {
   const detected = await fileTypeFromBuffer(buf);
   const declared = (file.type || "application/octet-stream").split(";")[0]!.trim();
 
-  const classified = classifyUploadMime(detected, declared, file.name);
+  const classified = classifyUploadMime(detected, declared);
   if (!classified) {
     return NextResponse.json(
       { error: "Unsupported or unsafe file type" },
@@ -111,19 +111,6 @@ export async function POST(req: Request) {
       height,
     },
   });
-
-  const familyName = (formData.get("familyName") as string)?.trim();
-  if (prefix === "fonts" && familyName) {
-    await prisma.fontAsset.create({
-      data: {
-        familyName,
-        key,
-        url,
-        format: outMime.includes("woff2") ? "woff2" : "woff",
-        slotHint: (formData.get("slot") as string) || null,
-      },
-    });
-  }
 
   return NextResponse.json({
     id: media.id,

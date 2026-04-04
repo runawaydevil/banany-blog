@@ -42,9 +42,11 @@ function FloatBtn({
 export function EditorFloatingMenu({
   editor,
   onInsertImage,
+  allowImages = true,
 }: {
   editor: Editor;
   onInsertImage: () => void;
+  allowImages?: boolean;
 }) {
   return (
     <FloatingMenu
@@ -112,9 +114,11 @@ export function EditorFloatingMenu({
       >
         <ListOrdered className="h-3.5 w-3.5" strokeWidth={2.25} />
       </FloatBtn>
-      <FloatBtn title="Image" onClick={onInsertImage}>
-        <ImageIcon className="h-3.5 w-3.5" strokeWidth={2.25} />
-      </FloatBtn>
+      {allowImages ? (
+        <FloatBtn title="Image" onClick={onInsertImage}>
+          <ImageIcon className="h-3.5 w-3.5" strokeWidth={2.25} />
+        </FloatBtn>
+      ) : null}
     </FloatingMenu>
   );
 }

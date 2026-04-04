@@ -31,12 +31,7 @@ model SiteSettings {
   themeOverrides Json?
   customCss      String? @db.Text
 
-  fontBodyKey    String @default("newsreader")
-  fontHeadingKey String @default("newsreader")
-  fontMonoKey    String @default("ibm-plex-mono")
-
   faviconMediaId   String?
-  siteImageMediaId String?
   logoMediaId      String?
 
   newsletterEnabledHome Boolean @default(false)
@@ -46,7 +41,6 @@ model SiteSettings {
   homePageSlug  String?
 
   seoDescription String?
-  seoOgImageId   String?
 
   updatedAt DateTime @updatedAt
 }
@@ -60,18 +54,6 @@ model Media {
   width     Int?
   height    Int?
   createdAt DateTime @default(now())
-}
-
-model FontAsset {
-  id         String   @id @default(cuid())
-  slotHint   String?
-  familyName String
-  key        String   @unique
-  url        String
-  format     String
-  weight     String   @default("400")
-  style      String   @default("normal")
-  createdAt  DateTime @default(now())
 }
 
 enum PostType {
@@ -119,11 +101,25 @@ model NavItem {
 }
 
 model Subscriber {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  confirmed Boolean  @default(true)
-  token     String?  @unique
-  createdAt DateTime @default(now())
+  id               String   @id @default(cuid())
+  email            String   @unique
+  unsubscribeToken String   @unique
+  unsubscribedAt   DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model NewsletterCampaign {
+  id            String   @id @default(cuid())
+  subject       String
+  previewText   String?  @db.VarChar(300)
+  bodyHtml      String   @db.Text
+  bodyText      String   @db.Text
+  recipientCount Int
+  failureCount  Int      @default(0)
+  sentAt        DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model PasswordResetToken {

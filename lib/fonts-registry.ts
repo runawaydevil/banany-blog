@@ -58,17 +58,8 @@ export const BUNDLED_FONTS: {
   },
 ];
 
-/** Value for font*Key when using an uploaded @font-face (see ThemeInject). */
-export function customFontKeyFromFamily(familyName: string) {
-  return `custom:${familyName.trim().replace(/\s+/g, "_")}`;
-}
-
 export function fontStackForKey(key: string | null | undefined): string {
   const f = BUNDLED_FONTS.find((x) => x.key === key);
   if (f) return f.stack;
-  if (key?.startsWith("custom:")) {
-    const name = key.slice("custom:".length).replace(/_/g, " ");
-    return `"${name}", system-ui, sans-serif`;
-  }
   return BUNDLED_FONTS[0].stack;
 }
