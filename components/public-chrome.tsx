@@ -65,7 +65,7 @@ export async function PublicChrome({
 
           <nav
             className="hidden shrink-0 items-center gap-x-5 text-sm text-[var(--bb-text-muted)] sm:flex"
-            aria-label="Primary"
+            aria-label={t(loc, "nav.primary")}
           >
             {items.map((item) => (
               <Link
@@ -80,7 +80,7 @@ export async function PublicChrome({
 
           <details className="relative sm:hidden">
             <summary className="cursor-pointer list-none text-sm text-[var(--bb-text-muted)] hover:text-[var(--bb-text)] [&::-webkit-details-marker]:hidden">
-              Menu
+              {t(loc, "common.menu")}
             </summary>
             <div className="absolute right-0 top-full z-20 mt-2 flex min-w-[10rem] flex-col gap-1 rounded-md border border-[var(--bb-border)]/80 bg-[var(--bb-surface)] p-2 shadow-sm">
               {items.map((item) => (

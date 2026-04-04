@@ -22,7 +22,7 @@ export function NewsletterInline({ locale }: { locale: string }) {
       setMsg(t(loc as Locale, "newsletter.success"));
       setEmail("");
     } else {
-      setMsg("Could not subscribe.");
+      setMsg(t(loc as Locale, "newsletter.error"));
     }
   }
 
@@ -33,7 +33,7 @@ export function NewsletterInline({ locale }: { locale: string }) {
     >
       <div className="flex-1">
         <label className="sr-only" htmlFor="nl-email">
-          Email
+          {t(loc as Locale, "common.email")}
         </label>
         <Input
           id="nl-email"

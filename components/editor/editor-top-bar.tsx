@@ -3,6 +3,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { useCurrentLocale } from "@/components/locale-provider";
+import { t } from "@/lib/i18n";
 import {
   SaveStateIndicator,
   type SaveUiState,
@@ -38,6 +40,7 @@ export function EditorTopBar({
   onPublish: () => void;
   extraActions?: ReactNode;
 }) {
+  const locale = useCurrentLocale();
   return (
     <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--bb-border)]/35 bg-[var(--bb-bg)]/88 px-4 py-2.5 backdrop-blur-md">
       <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -59,7 +62,7 @@ export function EditorTopBar({
             className="h-8 text-xs text-[var(--bb-text-muted)] lg:hidden"
             onClick={onOpenMetadata}
           >
-            Details
+            {t(locale, "editor.details")}
           </Button>
         ) : null}
         <Button
@@ -70,7 +73,7 @@ export function EditorTopBar({
           onClick={onSave}
           disabled={saving}
         >
-          {saving ? "Saving…" : "Save"}
+          {saving ? t(locale, "editor.saving") : t(locale, "editor.save")}
         </Button>
         <Button
           type="button"
@@ -88,6 +91,8 @@ export function EditorTopBar({
 
 /** Secondary actions in a minimal popover (no heavy dropdown dependency). */
 export function EditorMoreMenu({ children }: { children: ReactNode }) {
+  const locale = useCurrentLocale();
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -97,7 +102,7 @@ export function EditorMoreMenu({ children }: { children: ReactNode }) {
           size="sm"
           className="h-8 px-2 text-xs text-[var(--bb-text-muted)]"
         >
-          More
+          {t(locale, "editor.more")}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-48 p-2 text-sm">

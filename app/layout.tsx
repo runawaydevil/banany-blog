@@ -12,6 +12,7 @@ import "@fontsource/ibm-plex-mono/400.css";
 import { getSiteSettings } from "@/lib/site";
 import { getEffectivePublicOrigin } from "@/lib/public-origin";
 import { buildFaviconCacheBust, buildFaviconHref } from "@/lib/favicon";
+import { htmlLang, t } from "@/lib/i18n";
 
 export async function generateMetadata(): Promise<Metadata> {
   let site: Awaited<ReturnType<typeof getSiteSettings>> = null;
@@ -31,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
     "Banany Blog";
   const description =
     site?.seoDescription?.trim() ||
-    "A self-hosted small-web publishing engine";
+    t(site?.locale, "site.defaultDescription");
 
   let metadataBase: URL | undefined;
   try {
@@ -53,15 +54,22 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let site: Awaited<ReturnType<typeof getSiteSettings>> = null;
+  try {
+    site = await getSiteSettings();
+  } catch {
+    site = null;
+  }
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={htmlLang(site?.locale)} suppressHydrationWarning>
       <body className="min-h-screen antialiased">
-        <Providers>{children}</Providers>
+        <Providers locale={site?.locale}>{children}</Providers>
       </body>
     </html>
   );

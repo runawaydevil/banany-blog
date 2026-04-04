@@ -13,6 +13,7 @@ import {
   sanitizeNewsletterHtml,
 } from "@/lib/newsletter";
 import { fontStackForKey } from "@/lib/fonts-registry";
+import { normalizeLocale } from "@/lib/i18n";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -90,6 +91,7 @@ export async function POST(req: Request) {
   const baseUrl = getEffectivePublicOrigin(site).replace(/\/$/, "");
   const bodyFontStack = fontStackForKey(typography.body);
   const headingFontStack = fontStackForKey(typography.heading);
+  const locale = normalizeLocale(site.locale);
 
   const results = await Promise.allSettled(
     subscribers.map(async (subscriber) => {
@@ -100,6 +102,7 @@ export async function POST(req: Request) {
         bodyHtml: safeHtml,
         bodyFontStack,
         headingFontStack,
+        locale,
         logoUrl,
         previewText: parsed.data.previewText ?? "",
         siteTitle: site.siteTitle,

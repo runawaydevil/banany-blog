@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { Page } from "@prisma/client";
+import { useCurrentLocale } from "@/components/locale-provider";
 import { TiptapEditor } from "@/components/tiptap-editor";
 import { EditorShell } from "@/components/editor/editor-shell";
 import {
@@ -12,10 +13,12 @@ import {
 } from "@/components/editor/editor-top-bar";
 import { PageMetadataPanel } from "@/components/editor/page-metadata-panel";
 import type { SaveUiState } from "@/components/editor/save-state-indicator";
+import { t } from "@/lib/i18n";
 import { toast } from "sonner";
 
 export function PageForm({ initial }: { initial?: Page }) {
   const router = useRouter();
+  const locale = useCurrentLocale();
   const [title, setTitle] = useState(initial?.title ?? "");
   const [content, setContent] = useState(initial?.content ?? "<p></p>");
   const [published, setPublished] = useState(initial?.published ?? false);
@@ -73,7 +76,7 @@ export function PageForm({ initial }: { initial?: Page }) {
         });
         if (!res.ok) {
           const d = await res.json().catch(() => ({}));
-          throw new Error(d.error || "Save failed");
+          throw new Error(d.error || t(locale, "editor.saveFailed"));
         }
         const page = (await res.json()) as Page;
         if (overrides?.published === true) setPublished(true);
@@ -86,21 +89,26 @@ export function PageForm({ initial }: { initial?: Page }) {
         if (!silent) {
           if (overrides?.published === true) {
             toast.success(
-              initial?.published ? "Page updated." : "Page published.",
+              initial?.published
+                ? t(locale, "editor.pageUpdated")
+                : t(locale, "editor.pagePublished"),
             );
           } else {
-            toast.success("Page saved.");
+            toast.success(t(locale, "editor.pageSaved"));
           }
         }
       } catch (e) {
-        const message = e instanceof Error ? e.message : "Save failed";
+        const message =
+          e instanceof Error && e.message
+            ? e.message
+            : t(locale, "editor.saveFailed");
         setErr(message);
         if (!silent) toast.error(message);
       } finally {
         if (!silent) setSaving(false);
       }
     },
-    [initial, payload, router],
+    [initial, payload, router, locale],
   );
 
   useEffect(() => {
@@ -118,14 +126,18 @@ export function PageForm({ initial }: { initial?: Page }) {
   const topBar = (
     <EditorTopBar
       backHref="/dashboard/pages"
-      backLabel="← Pages"
+      backLabel={t(locale, "editor.backPages")}
       saveState={saveUiState}
       savedAt={savedAt}
       onOpenMetadata={() => setMetadataOpen(true)}
       showMetadataButton
       onSave={() => void save(false)}
       saving={saving}
-      publishLabel={initial?.published ? "Update" : "Publish"}
+      publishLabel={
+        initial?.published
+          ? t(locale, "editor.update")
+          : t(locale, "editor.publish")
+      }
       onPublish={async () => {
         await save(false, { published: true });
         router.push("/dashboard/pages");
@@ -139,7 +151,7 @@ export function PageForm({ initial }: { initial?: Page }) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              View live
+              {t(locale, "editor.viewLive")}
             </Link>
           </EditorMoreMenu>
         ) : null
@@ -153,8 +165,8 @@ export function PageForm({ initial }: { initial?: Page }) {
         <p className="mb-6 text-sm text-[var(--bb-danger)]">{err}</p>
       ) : null}
       <input
-        aria-label="Title"
-        placeholder="Page title"
+        aria-label={t(locale, "editor.pageTitlePlaceholder")}
+        placeholder={t(locale, "editor.pageTitlePlaceholder")}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         className="mb-8 w-full border-none bg-transparent px-0 py-1 text-[2.15rem] font-[family-name:var(--bb-font-heading)] font-medium leading-[1.15] tracking-tight text-[var(--bb-heading)] shadow-none placeholder:text-[var(--bb-text-muted)]/55 focus:outline-none focus:ring-0 sm:text-[2.5rem]"
@@ -162,7 +174,7 @@ export function PageForm({ initial }: { initial?: Page }) {
       <TiptapEditor
         content={content}
         onChange={setContent}
-        placeholder="Page content…"
+        placeholder={t(locale, "editor.pageContentPlaceholder")}
       />
     </>
   );

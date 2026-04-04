@@ -40,11 +40,12 @@ describe("hasRenderableNewsletterBody", () => {
 });
 
 describe("renderNewsletterEmail", () => {
-  it("includes preview text and unsubscribe footer", () => {
+  it("renders English email chrome with the correct lang and unsubscribe footer", () => {
     const html = renderNewsletterEmail({
       bodyHtml: "<p>Hello</p>",
       bodyFontStack: 'Georgia, serif',
       headingFontStack: 'Georgia, serif',
+      locale: "en",
       logoUrl: "https://example.com/logo.png",
       previewText: "Fresh note",
       siteTitle: "Banany Blog",
@@ -52,9 +53,33 @@ describe("renderNewsletterEmail", () => {
       unsubscribeUrl: "https://example.com/unsubscribe?token=abc",
     });
 
+    expect(html).toContain('lang="en"');
     expect(html).toContain("Fresh note");
     expect(html).toContain("Banany Blog");
+    expect(html).toContain(
+      "You are receiving this because you subscribed to Banany Blog.",
+    );
     expect(html).toContain("Unsubscribe instantly");
     expect(html).toContain("https://example.com/unsubscribe?token=abc");
+  });
+
+  it("renders pt-BR email chrome when locale is pt", () => {
+    const html = renderNewsletterEmail({
+      bodyHtml: "<p>Ol\u00e1</p>",
+      bodyFontStack: 'Georgia, serif',
+      headingFontStack: 'Georgia, serif',
+      locale: "pt",
+      previewText: "Nova nota",
+      siteTitle: "Banany Blog",
+      tokens: mergeTokens("vaporwave-neon"),
+      unsubscribeUrl: "https://example.com/unsubscribe?token=abc",
+    });
+
+    expect(html).toContain('lang="pt-BR"');
+    expect(html).toContain("Nova nota");
+    expect(html).toContain(
+      "Voc\u00ea est\u00e1 recebendo isto porque se inscreveu em Banany Blog.",
+    );
+    expect(html).toContain("Cancelar inscri\u00e7\u00e3o instantaneamente");
   });
 });

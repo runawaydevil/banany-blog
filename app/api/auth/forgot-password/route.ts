@@ -11,6 +11,7 @@ import {
   clientIpFromRequest,
   rateLimit,
 } from "@/lib/rate-limit";
+import { normalizeLocale, t } from "@/lib/i18n";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
 
   const base = getEffectivePublicOrigin(site).replace(/\/$/, "");
   const link = `${base}/reset-password?token=${encodeURIComponent(raw)}`;
+  const locale = normalizeLocale(site.locale);
 
   const result = await sendMailgunEmail({
     apiKey: mg.apiKey,
@@ -81,8 +83,8 @@ export async function POST(req: Request) {
     region: mg.region,
     from: mg.from,
     to: user.email,
-    subject: "Reset your Banany Blog password",
-    text: `Open this link to reset your password (valid 1 hour):\n${link}`,
+    subject: t(locale, "email.reset.subject"),
+    text: `${t(locale, "email.reset.body")}\n${link}`,
     replyTo: mg.replyTo,
   });
 

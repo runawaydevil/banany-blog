@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useCurrentLocale } from "@/components/locale-provider";
 import { PRESET_LABELS, THEME_PRESET_IDS, type ThemePresetId } from "@/lib/themes";
 import type { SemanticTokens } from "@/lib/themes";
 import { DEFAULT_BRANDING_LOGO } from "@/lib/branding";
 import { buildFaviconCacheBust, buildFaviconHref } from "@/lib/favicon";
+import { t } from "@/lib/i18n";
 
 const PRESETS = [...THEME_PRESET_IDS] as ThemePresetId[];
 
@@ -48,17 +50,27 @@ function updateBrowserFavicon(bust: string) {
 }
 
 function AssetCard({
+  title,
   currentUrl,
+  currentLabel,
   emptyLabel,
   inputRef,
   kind,
+  removeLabel,
+  replaceLabel,
+  uploadLabel,
   onUpload,
   onRemove,
 }: {
+  title: string;
   currentUrl: string | null;
+  currentLabel: string;
   emptyLabel: string;
   inputRef: React.RefObject<HTMLInputElement | null>;
   kind: "favicon" | "logo";
+  removeLabel: string;
+  replaceLabel: string;
+  uploadLabel: string;
   onUpload: (kind: "favicon" | "logo", file: File) => Promise<void>;
   onRemove: (kind: "favicon" | "logo") => Promise<void>;
 }) {
@@ -70,10 +82,10 @@ function AssetCard({
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-[var(--bb-heading)]">
-            {kind === "favicon" ? "Favicon" : "Logo"}
+            {title}
           </p>
           <p className="text-xs text-[var(--bb-text-muted)]">
-            {currentUrl ? "Current asset attached." : emptyLabel}
+            {currentUrl ? currentLabel : emptyLabel}
           </p>
         </div>
         {previewUrl ? (
@@ -91,7 +103,7 @@ function AssetCard({
           />
         ) : (
           <div className="flex h-8 w-8 items-center justify-center rounded-sm border border-dashed border-[var(--bb-border)] text-[10px] text-[var(--bb-text-muted)]">
-            none
+            —
           </div>
         )}
       </div>
@@ -109,7 +121,7 @@ function AssetCard({
             }}
           />
           <span className="inline-flex h-8 items-center justify-center rounded-md border border-[var(--bb-border)] px-3 text-xs font-medium text-[var(--bb-text)] transition-colors hover:bg-[var(--bb-surface)]">
-            {currentUrl ? "Replace" : "Upload"}
+            {currentUrl ? replaceLabel : uploadLabel}
           </span>
         </label>
         {currentUrl ? (
@@ -119,7 +131,7 @@ function AssetCard({
             variant="outline"
             onClick={() => void onRemove(kind)}
           >
-            Remove
+            {removeLabel}
           </Button>
         ) : null}
       </div>
@@ -136,12 +148,15 @@ export function AppearanceForm({
   faviconUrl: string | null;
   logoUrl: string | null;
 }) {
+  const currentLocale = useCurrentLocale();
   const router = useRouter();
   const faviconInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [themePreset, setThemePreset] = useState(site.themePreset);
+  const [locale, setLocale] = useState(site.locale);
   const [customCss, setCustomCss] = useState(site.customCss ?? "");
   const [saving, setSaving] = useState(false);
+  const uiLocale = locale || currentLocale;
 
   const initialOv = useMemo(
     () => parseOverrides(site.themeOverrides),
@@ -154,7 +169,8 @@ export function AppearanceForm({
     const o = parseOverrides(site.themeOverrides);
     setAccent(o.accent ?? "");
     setLink(o.link ?? "");
-  }, [site.themeOverrides]);
+    setLocale(site.locale);
+  }, [site.locale, site.themeOverrides]);
 
   async function save() {
     setSaving(true);
@@ -170,16 +186,17 @@ export function AppearanceForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         themePreset,
+        locale,
         customCss: customCss || null,
         themeOverrides: Object.keys(next).length ? next : null,
       }),
     });
     setSaving(false);
     if (!res.ok) {
-      toast.error("Could not save appearance.");
+      toast.error(t(uiLocale, "appearance.saveError"));
       return;
     }
-    toast.success("Appearance saved.");
+    toast.success(t(uiLocale, "appearance.saved"));
     router.refresh();
   }
 
@@ -189,7 +206,7 @@ export function AppearanceForm({
     fd.append("prefix", "branding");
     const res = await fetch("/api/upload", { method: "POST", body: fd });
     if (!res.ok) {
-      toast.error("Upload failed.");
+      toast.error(t(uiLocale, "appearance.uploadError"));
       return;
     }
     const data = (await res.json()) as { id: string };
@@ -200,7 +217,7 @@ export function AppearanceForm({
       body: JSON.stringify({ [field]: data.id }),
     });
     if (!patchRes.ok) {
-      toast.error("Could not attach branding to the site.");
+      toast.error(t(uiLocale, "appearance.attachError"));
       return;
     }
     const patchData = (await patchRes.json()) as SitePatchResponse;
@@ -212,7 +229,14 @@ export function AppearanceForm({
         }),
       );
     }
-    toast.success(kind === "favicon" ? "Favicon updated." : "Logo updated.");
+    toast.success(
+      t(
+        uiLocale,
+        kind === "favicon"
+          ? "appearance.faviconUpdated"
+          : "appearance.logoUpdated",
+      ),
+    );
     if (kind === "favicon" && faviconInputRef.current) {
       faviconInputRef.current.value = "";
     }
@@ -230,7 +254,7 @@ export function AppearanceForm({
       body: JSON.stringify({ [field]: null }),
     });
     if (!res.ok) {
-      toast.error("Could not remove branding.");
+      toast.error(t(uiLocale, "appearance.removeError"));
       return;
     }
     const patchData = (await res.json()) as SitePatchResponse;
@@ -242,19 +266,26 @@ export function AppearanceForm({
         }),
       );
     }
-    toast.success(kind === "favicon" ? "Favicon removed." : "Logo removed.");
+    toast.success(
+      t(
+        uiLocale,
+        kind === "favicon"
+          ? "appearance.faviconRemoved"
+          : "appearance.logoRemoved",
+      ),
+    );
     router.refresh();
   }
 
   return (
     <div className="mx-auto max-w-xl space-y-8">
       <h1 className="font-[family-name:var(--bb-font-heading)] text-2xl text-[var(--bb-heading)]">
-        Appearance
+        {t(uiLocale, "appearance.title")}
       </h1>
 
       <section className="space-y-3 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)] p-4">
         <h2 className="text-sm font-medium text-[var(--bb-heading)]">
-          Theme preset
+          {t(uiLocale, "appearance.themePreset")}
         </h2>
         <select
           className="flex h-9 w-full rounded-md border border-[var(--bb-border)] bg-[var(--bb-input-bg)] px-2 text-sm"
@@ -267,27 +298,40 @@ export function AppearanceForm({
             </option>
           ))}
         </select>
+        <div>
+          <Label htmlFor="appearance-locale">
+            {t(uiLocale, "appearance.language")}
+          </Label>
+          <select
+            id="appearance-locale"
+            className="mt-1 flex h-9 w-full rounded-md border border-[var(--bb-border)] bg-[var(--bb-input-bg)] px-2 text-sm"
+            value={locale}
+            onChange={(e) => setLocale(e.target.value)}
+          >
+            <option value="en">{t("en", "locale.en")}</option>
+            <option value="pt">{t("pt", "locale.pt")}</option>
+          </select>
+        </div>
         <p className="text-xs text-[var(--bb-text-muted)]">
-          Typography stays locked to the preset. Accent and link overrides are
-          optional and apply on top of the preset tokens.
+          {t(uiLocale, "appearance.typographyLocked")}
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
           <div>
-            <Label htmlFor="accent">Accent</Label>
+            <Label htmlFor="accent">{t(uiLocale, "appearance.accent")}</Label>
             <Input
               id="accent"
               value={accent}
               onChange={(e) => setAccent(e.target.value)}
-              placeholder="Leave empty for preset default"
+              placeholder={t(uiLocale, "appearance.usePresetDefault")}
             />
           </div>
           <div>
-            <Label htmlFor="link">Link</Label>
+            <Label htmlFor="link">{t(uiLocale, "appearance.link")}</Label>
             <Input
               id="link"
               value={link}
               onChange={(e) => setLink(e.target.value)}
-              placeholder="Leave empty for preset default"
+              placeholder={t(uiLocale, "appearance.usePresetDefault")}
             />
           </div>
         </div>
@@ -295,22 +339,32 @@ export function AppearanceForm({
 
       <section className="space-y-3 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)] p-4">
         <h2 className="text-sm font-medium text-[var(--bb-heading)]">
-          Branding assets
+          {t(uiLocale, "appearance.brandingAssets")}
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <AssetCard
+            title="Favicon"
             currentUrl={faviconUrl}
-            emptyLabel="No custom favicon yet."
+            currentLabel={t(uiLocale, "appearance.currentAsset")}
+            emptyLabel={t(uiLocale, "appearance.noCustomFavicon")}
             inputRef={faviconInputRef}
             kind="favicon"
+            removeLabel={t(uiLocale, "common.remove")}
+            replaceLabel={t(uiLocale, "common.replace")}
+            uploadLabel={t(uiLocale, "common.upload")}
             onUpload={uploadBranding}
             onRemove={removeBranding}
           />
           <AssetCard
+            title="Logo"
             currentUrl={logoUrl}
-            emptyLabel="Using the default Banany mark."
+            currentLabel={t(uiLocale, "appearance.currentAsset")}
+            emptyLabel={t(uiLocale, "appearance.defaultLogo")}
             inputRef={logoInputRef}
             kind="logo"
+            removeLabel={t(uiLocale, "common.remove")}
+            replaceLabel={t(uiLocale, "common.replace")}
+            uploadLabel={t(uiLocale, "common.upload")}
             onUpload={uploadBranding}
             onRemove={removeBranding}
           />
@@ -319,11 +373,10 @@ export function AppearanceForm({
 
       <section className="space-y-2 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)] p-4">
         <h2 className="text-sm font-medium text-[var(--bb-heading)]">
-          Custom CSS
+          {t(uiLocale, "appearance.customCss")}
         </h2>
         <p className="text-xs text-[var(--bb-text-muted)]">
-          Injected after theme variables so your rules win predictably. Server
-          limit: 120KB.
+          {t(uiLocale, "appearance.customCssHelp")}
         </p>
         <Textarea
           value={customCss}
@@ -334,7 +387,9 @@ export function AppearanceForm({
       </section>
 
       <Button type="button" onClick={save} disabled={saving}>
-        {saving ? "Saving…" : "Save appearance"}
+        {saving
+          ? t(uiLocale, "appearance.saving")
+          : t(uiLocale, "appearance.save")}
       </Button>
     </div>
   );

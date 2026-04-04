@@ -4,6 +4,7 @@ import { getSiteSettings } from "@/lib/site";
 import { NewsletterInline } from "@/components/newsletter-inline";
 import { toValidDate, toISOStringSafe } from "@/lib/dates";
 import { sanitizePostHtml } from "@/lib/sanitize-html";
+import { intlLocale, t, tm } from "@/lib/i18n";
 import type { Post } from "@prisma/client";
 
 const PAGE_SIZE = 20;
@@ -26,6 +27,7 @@ export default async function HomePage({
   const page = Math.min(pageRaw, totalPages);
 
   const site = await getSiteSettings();
+  const locale = site?.locale;
   const posts = await prisma.post.findMany({
     where: { published: true },
     orderBy: [
@@ -74,11 +76,11 @@ export default async function HomePage({
       {pinned.length > 0 ? (
         <section className="space-y-4">
           <h2 className="text-xs font-medium uppercase tracking-widest text-[var(--bb-text-muted)]">
-            Pinned
+            {t(locale, "post.pinned")}
           </h2>
           <ul className="space-y-8">
-            {pinned.map((p) => (
-              <PostRow key={p.id} post={p} omitYear />
+            {pinned.map((post) => (
+              <PostRow key={post.id} post={post} locale={locale} omitYear />
             ))}
           </ul>
         </section>
@@ -87,9 +89,9 @@ export default async function HomePage({
       {rest.length > 0 ? (
         <section className="space-y-4">
           <ul className="space-y-8 divide-y divide-[var(--bb-border)]/60">
-            {rest.map((p) => (
-              <li key={p.id} className="pt-8 first:pt-0 first:border-t-0">
-                <PostRow post={p} omitYear />
+            {rest.map((post) => (
+              <li key={post.id} className="pt-8 first:pt-0 first:border-t-0">
+                <PostRow post={post} locale={locale} omitYear />
               </li>
             ))}
           </ul>
@@ -97,16 +99,18 @@ export default async function HomePage({
       ) : null}
 
       {total === 0 ? (
-        <p className="text-sm text-[var(--bb-text-muted)]">No posts yet.</p>
+        <p className="text-sm text-[var(--bb-text-muted)]">
+          {t(locale, "post.empty")}
+        </p>
       ) : null}
 
       {totalPages > 1 ? (
         <nav
           className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--bb-border)]/40 pt-8 text-sm"
-          aria-label="Pagination"
+          aria-label={t(locale, "common.pagination")}
         >
           <span className="text-[var(--bb-text-muted)]">
-            Page {page} of {totalPages}
+            {tm(locale, "post.pageOf", { page, total: totalPages })}
           </span>
           <div className="flex gap-4">
             {page > 1 ? (
@@ -114,11 +118,11 @@ export default async function HomePage({
                 href={page === 2 ? "/" : `/?page=${page - 1}`}
                 className="text-[var(--bb-link)] hover:underline"
               >
-                Previous
+                {t(locale, "common.previous")}
               </Link>
             ) : (
               <span className="text-[var(--bb-text-muted)] opacity-50">
-                Previous
+                {t(locale, "common.previous")}
               </span>
             )}
             {page < totalPages ? (
@@ -126,11 +130,11 @@ export default async function HomePage({
                 href={`/?page=${page + 1}`}
                 className="text-[var(--bb-link)] hover:underline"
               >
-                Next
+                {t(locale, "common.next")}
               </Link>
             ) : (
               <span className="text-[var(--bb-text-muted)] opacity-50">
-                Next
+                {t(locale, "common.next")}
               </span>
             )}
           </div>
@@ -140,7 +144,7 @@ export default async function HomePage({
       {page === 1 && site?.newsletterEnabledHome ? (
         <section className="border-t border-[var(--bb-border)]/40 pt-10">
           <p className="mb-3 text-xs text-[var(--bb-text-muted)]">
-            Newsletter
+            {t(locale, "newsletter.label")}
           </p>
           <NewsletterInline locale={site.locale} />
         </section>
@@ -149,13 +153,21 @@ export default async function HomePage({
   );
 }
 
-function PostRow({ post, omitYear }: { post: Post; omitYear?: boolean }) {
+function PostRow({
+  post,
+  locale,
+  omitYear,
+}: {
+  post: Post;
+  locale: string | null | undefined;
+  omitYear?: boolean;
+}) {
   const date = toValidDate(post.publishedAt) ?? toValidDate(post.createdAt);
   const dateIso =
     toISOStringSafe(post.publishedAt) ?? toISOStringSafe(post.createdAt);
   const dateStr = date
     ? date.toLocaleDateString(
-        undefined,
+        intlLocale(locale),
         omitYear
           ? { month: "short", day: "numeric" }
           : { year: "numeric", month: "short", day: "numeric" },
@@ -163,6 +175,7 @@ function PostRow({ post, omitYear }: { post: Post; omitYear?: boolean }) {
     : null;
   const rawHtml = sanitizePostHtml(post.content);
   const showBody = hasRenderableBody(post.content);
+  const postTypeKey = `postType.${post.type.toLowerCase()}`;
 
   return (
     <article className="prose-bb max-w-none">
@@ -177,29 +190,18 @@ function PostRow({ post, omitYear }: { post: Post; omitYear?: boolean }) {
         ) : null}
         {post.type !== "POST" ? (
           <span className="text-xs text-[var(--bb-text-muted)] opacity-70">
-            {post.type.toLowerCase()}
+            {t(locale, postTypeKey)}
           </span>
         ) : null}
       </div>
-      {post.title ? (
-        <h3 className="mt-1 font-[family-name:var(--bb-font-heading)] text-lg">
-          <Link
-            href={`/posts/${post.slug}`}
-            className="text-[var(--bb-heading)] hover:text-[var(--bb-link)]"
-          >
-            {post.title}
-          </Link>
-        </h3>
-      ) : (
-        <h3 className="mt-1 font-[family-name:var(--bb-font-heading)] text-lg">
-          <Link
-            href={`/posts/${post.slug}`}
-            className="text-[var(--bb-heading)] hover:text-[var(--bb-link)]"
-          >
-            Note
-          </Link>
-        </h3>
-      )}
+      <h3 className="mt-1 font-[family-name:var(--bb-font-heading)] text-lg">
+        <Link
+          href={`/posts/${post.slug}`}
+          className="text-[var(--bb-heading)] hover:text-[var(--bb-link)]"
+        >
+          {post.title || t(locale, "post.note")}
+        </Link>
+      </h3>
       {post.type === "LINK" && post.linkUrl ? (
         <a
           href={post.linkUrl}

@@ -14,6 +14,7 @@ import {
   newsletterHtmlToPlainText,
   renderNewsletterEmail,
 } from "@/lib/newsletter";
+import { intlLocale, t, tm } from "@/lib/i18n";
 
 type SubscriberRow = {
   id: string;
@@ -33,7 +34,7 @@ type CampaignRow = {
 
 function formatDate(value: string | null, locale: string) {
   if (!value) return "—";
-  return new Date(value).toLocaleString(locale);
+  return new Date(value).toLocaleString(intlLocale(locale));
 }
 
 export function NewsletterDashboard({
@@ -85,6 +86,7 @@ export function NewsletterDashboard({
         bodyHtml,
         bodyFontStack,
         headingFontStack,
+        locale,
         logoUrl,
         previewText,
         siteTitle,
@@ -95,6 +97,7 @@ export function NewsletterDashboard({
       bodyFontStack,
       bodyHtml,
       headingFontStack,
+      locale,
       logoUrl,
       previewText,
       siteTitle,
@@ -108,11 +111,11 @@ export function NewsletterDashboard({
 
   async function sendCampaign() {
     if (!subject.trim()) {
-      toast.error("Subject is required.");
+      toast.error(t(locale, "newsletterDashboard.subjectRequired"));
       return;
     }
     if (!hasRenderableNewsletterBody(bodyHtml)) {
-      toast.error("Write the newsletter before sending.");
+      toast.error(t(locale, "newsletterDashboard.bodyRequired"));
       return;
     }
 
@@ -135,7 +138,7 @@ export function NewsletterDashboard({
     };
 
     if (!res.ok) {
-      toast.error(payload.error || "Could not send newsletter.");
+      toast.error(payload.error || t(locale, "newsletterDashboard.sendError"));
       return;
     }
 
@@ -143,8 +146,13 @@ export function NewsletterDashboard({
     const failures = payload.failureCount ?? 0;
     toast.success(
       failures > 0
-        ? `Newsletter sent to ${delivered} subscribers with ${failures} failure(s).`
-        : `Newsletter sent to ${delivered} subscribers.`,
+        ? tm(locale, "newsletterDashboard.sentSummaryWithFailures", {
+            count: delivered,
+            failures,
+          })
+        : tm(locale, "newsletterDashboard.sentSummary", {
+            count: delivered,
+          }),
     );
     setSubject("");
     setPreviewText("");
@@ -157,15 +165,15 @@ export function NewsletterDashboard({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-[family-name:var(--bb-font-heading)] text-2xl text-[var(--bb-heading)]">
-            Newsletter
+            {t(locale, "newsletterDashboard.title")}
           </h1>
           <p className="mt-2 text-sm text-[var(--bb-text-muted)]">
-            Manual sends, subscriber management, and campaign history.
+            {t(locale, "newsletterDashboard.subtitle")}
           </p>
         </div>
         <div className="rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)] px-4 py-3 text-right">
           <p className="text-xs uppercase tracking-wide text-[var(--bb-text-muted)]">
-            Active subscribers
+            {t(locale, "newsletterDashboard.activeSubscribers")}
           </p>
           <p className="text-2xl font-medium text-[var(--bb-heading)]">
             {activeCount}
@@ -177,41 +185,47 @@ export function NewsletterDashboard({
         <div className="space-y-4 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)] p-4">
           <div className="grid gap-4">
             <div className="space-y-1">
-              <Label htmlFor="newsletter-subject">Subject</Label>
+              <Label htmlFor="newsletter-subject">
+                {t(locale, "newsletterDashboard.subject")}
+              </Label>
               <Input
                 id="newsletter-subject"
                 value={subject}
                 onChange={(event) => setSubject(event.target.value)}
-                placeholder="What are you sending today?"
+                placeholder={t(locale, "newsletterDashboard.subjectPlaceholder")}
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="newsletter-preview">Preview text</Label>
+              <Label htmlFor="newsletter-preview">
+                {t(locale, "newsletterDashboard.previewText")}
+              </Label>
               <Input
                 id="newsletter-preview"
                 value={previewText}
                 onChange={(event) => setPreviewText(event.target.value)}
-                placeholder="Short preheader shown in inboxes"
+                placeholder={t(locale, "newsletterDashboard.previewPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Body</Label>
+              <Label>{t(locale, "newsletterDashboard.body")}</Label>
               <div className="rounded-md border border-[var(--bb-border)] px-4 py-3">
                 <TiptapEditor
                   content={bodyHtml}
                   onChange={setBodyHtml}
-                  placeholder="Write your newsletter…"
+                  placeholder={t(locale, "newsletterDashboard.bodyPlaceholder")}
                   allowImages={false}
                 />
               </div>
               <p className="text-xs text-[var(--bb-text-muted)]">
-                Images are intentionally disabled in newsletter sends for now.
+                {t(locale, "newsletterDashboard.bodyHelp")}
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button type="button" onClick={sendCampaign} disabled={sending}>
-              {sending ? "Sending…" : "Send newsletter"}
+              {sending
+                ? t(locale, "newsletterDashboard.sending")
+                : t(locale, "newsletterDashboard.send")}
             </Button>
           </div>
         </div>
@@ -219,10 +233,10 @@ export function NewsletterDashboard({
         <div className="space-y-4 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)] p-4">
           <div>
             <h2 className="text-sm font-medium text-[var(--bb-heading)]">
-              Live preview
+              {t(locale, "newsletterDashboard.preview")}
             </h2>
             <p className="mt-1 text-xs text-[var(--bb-text-muted)]">
-              Uses the active site theme, title, and current logo.
+              {t(locale, "newsletterDashboard.previewHelp")}
             </p>
           </div>
           <div className="max-h-[640px] overflow-auto rounded-md border border-[var(--bb-border)] bg-white">
@@ -230,7 +244,7 @@ export function NewsletterDashboard({
           </div>
           <details className="rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface-soft)] px-3 py-2">
             <summary className="cursor-pointer text-sm font-medium text-[var(--bb-heading)]">
-              Plain-text fallback
+              {t(locale, "newsletterDashboard.plainText")}
             </summary>
             <Textarea
               readOnly
@@ -247,17 +261,17 @@ export function NewsletterDashboard({
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-sm font-medium text-[var(--bb-heading)]">
-                Subscribers
+                {t(locale, "newsletterDashboard.subscribers")}
               </h2>
               <p className="mt-1 text-xs text-[var(--bb-text-muted)]">
-                Search, inspect status, and export as CSV.
+                {t(locale, "newsletterDashboard.subscribersHelp")}
               </p>
             </div>
             <a
               href="/api/subscribers?format=csv"
               className="inline-flex h-8 items-center justify-center rounded-md border border-[var(--bb-border)] px-3 text-xs font-medium text-[var(--bb-text)] transition-colors hover:bg-[var(--bb-surface-soft)]"
             >
-              Export CSV
+              {t(locale, "newsletterDashboard.exportCsv")}
             </a>
           </div>
 
@@ -265,7 +279,7 @@ export function NewsletterDashboard({
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by email"
+              placeholder={t(locale, "newsletterDashboard.searchPlaceholder")}
               className="min-w-[220px] flex-1"
             />
             <div className="flex gap-2">
@@ -278,10 +292,10 @@ export function NewsletterDashboard({
                   onClick={() => setFilter(value)}
                 >
                   {value === "all"
-                    ? "All"
+                    ? t(locale, "newsletterDashboard.filterAll")
                     : value === "active"
-                      ? "Active"
-                      : "Unsubscribed"}
+                      ? t(locale, "newsletterDashboard.filterActive")
+                      : t(locale, "newsletterDashboard.filterUnsubscribed")}
                 </Button>
               ))}
             </div>
@@ -291,9 +305,15 @@ export function NewsletterDashboard({
             <table className="w-full border-collapse text-sm">
               <thead className="bg-[var(--bb-surface-soft)] text-left text-xs uppercase tracking-wide text-[var(--bb-text-muted)]">
                 <tr>
-                  <th className="px-3 py-2">Email</th>
-                  <th className="px-3 py-2">Subscribed</th>
-                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">
+                    {t(locale, "newsletterDashboard.tableEmail")}
+                  </th>
+                  <th className="px-3 py-2">
+                    {t(locale, "newsletterDashboard.tableSubscribed")}
+                  </th>
+                  <th className="px-3 py-2">
+                    {t(locale, "newsletterDashboard.tableStatus")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -311,11 +331,14 @@ export function NewsletterDashboard({
                     <td className="px-3 py-2">
                       {subscriber.unsubscribedAt ? (
                         <span className="text-[var(--bb-text-muted)]">
-                          Unsubscribed on{" "}
-                          {formatDate(subscriber.unsubscribedAt, locale)}
+                          {tm(locale, "newsletterDashboard.unsubscribedOn", {
+                            date: formatDate(subscriber.unsubscribedAt, locale),
+                          })}
                         </span>
                       ) : (
-                        <span className="text-[var(--bb-accent)]">Active</span>
+                        <span className="text-[var(--bb-accent)]">
+                          {t(locale, "newsletterDashboard.filterActive")}
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -326,7 +349,7 @@ export function NewsletterDashboard({
                       colSpan={3}
                       className="px-3 py-6 text-center text-sm text-[var(--bb-text-muted)]"
                     >
-                      No subscribers match this filter.
+                      {t(locale, "newsletterDashboard.noSubscribers")}
                     </td>
                   </tr>
                 ) : null}
@@ -338,10 +361,10 @@ export function NewsletterDashboard({
         <div className="space-y-4 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)] p-4">
           <div>
             <h2 className="text-sm font-medium text-[var(--bb-heading)]">
-              Recent campaigns
+              {t(locale, "newsletterDashboard.recentCampaigns")}
             </h2>
             <p className="mt-1 text-xs text-[var(--bb-text-muted)]">
-              Latest manual sends and recipient counts.
+              {t(locale, "newsletterDashboard.recentCampaignsHelp")}
             </p>
           </div>
           <div className="space-y-3">
@@ -366,17 +389,21 @@ export function NewsletterDashboard({
                   </span>
                 </div>
                 <p className="mt-3 text-xs text-[var(--bb-text-muted)]">
-                  Sent to {campaign.recipientCount} subscriber(s)
-                  {campaign.failureCount > 0
-                    ? `, ${campaign.failureCount} failure(s)`
-                    : ""}
-                  .
+                  {tm(locale, "newsletterDashboard.sentTo", {
+                    count: campaign.recipientCount,
+                    suffix:
+                      campaign.failureCount > 0
+                        ? tm(locale, "newsletterDashboard.failuresSuffix", {
+                            count: campaign.failureCount,
+                          })
+                        : "",
+                  })}
                 </p>
               </article>
             ))}
             {campaigns.length === 0 ? (
               <p className="text-sm text-[var(--bb-text-muted)]">
-                No campaigns sent yet.
+                {t(locale, "newsletterDashboard.noCampaigns")}
               </p>
             ) : null}
           </div>

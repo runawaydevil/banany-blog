@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { sanitizePostHtml } from "@/lib/sanitize-html";
+import { getSiteSettings } from "@/lib/site";
+import { t } from "@/lib/i18n";
 
 export async function generateMetadata({
   params,
@@ -9,8 +11,11 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const page = await prisma.page.findUnique({ where: { slug } });
-  if (!page || !page.published) return { title: "Not found" };
+  const [page, site] = await Promise.all([
+    prisma.page.findUnique({ where: { slug } }),
+    getSiteSettings(),
+  ]);
+  if (!page || !page.published) return { title: t(site?.locale, "common.notFound") };
   return { title: page.title };
 }
 
@@ -20,7 +25,10 @@ export default async function PublicPagePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const page = await prisma.page.findUnique({ where: { slug } });
+  const [page, site] = await Promise.all([
+    prisma.page.findUnique({ where: { slug } }),
+    getSiteSettings(),
+  ]);
   if (!page || !page.published) notFound();
 
   const html = sanitizePostHtml(page.content);
@@ -31,7 +39,7 @@ export default async function PublicPagePage({
         href="/"
         className="text-xs text-[var(--bb-text-muted)] hover:text-[var(--bb-link)]"
       >
-        ← Home
+        {t(site?.locale, "common.backHome")}
       </Link>
       <h1 className="mt-6 font-[family-name:var(--bb-font-heading)] text-3xl text-[var(--bb-heading)]">
         {page.title}

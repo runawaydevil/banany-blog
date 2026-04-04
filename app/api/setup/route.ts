@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
 import { z } from "zod";
+import { normalizeLocale, t } from "@/lib/i18n";
 import { THEME_PRESET_IDS } from "@/lib/themes";
 import {
   getTrustedAppUrl,
@@ -26,6 +27,7 @@ const bodySchema = z.object({
       }
     }, "Invalid URL"),
   themePreset: z.enum(THEME_PRESET_IDS).optional(),
+  locale: z.enum(["en", "pt"]).optional(),
 });
 
 export async function POST(req: Request) {
@@ -49,7 +51,9 @@ export async function POST(req: Request) {
     siteTitle,
     publicUrl: bodyPublicUrl,
     themePreset,
+    locale,
   } = parsed.data;
+  const resolvedLocale = normalizeLocale(locale);
 
   const trusted = getTrustedAppUrl();
   let resolvedPublicUrl = bodyPublicUrl.replace(/\/$/, "");
@@ -90,7 +94,7 @@ export async function POST(req: Request) {
         publicUrl: resolvedPublicUrl,
         themePreset: themePreset ?? "paper",
         setupComplete: true,
-        locale: "en",
+        locale: resolvedLocale,
       },
       update: {
         siteTitle,
@@ -98,6 +102,7 @@ export async function POST(req: Request) {
         browserTitle: siteTitle,
         publicUrl: resolvedPublicUrl,
         themePreset: themePreset ?? "paper",
+        locale: resolvedLocale,
         setupComplete: true,
       },
     });
@@ -105,8 +110,12 @@ export async function POST(req: Request) {
     if (count === 0) {
       await tx.navItem.createMany({
         data: [
-          { label: "Home", href: "/", order: 0 },
-          { label: "Archive", href: "/archive", order: 1 },
+          { label: t(resolvedLocale, "nav.home"), href: "/", order: 0 },
+          {
+            label: t(resolvedLocale, "nav.archive"),
+            href: "/archive",
+            order: 1,
+          },
         ],
       });
     }

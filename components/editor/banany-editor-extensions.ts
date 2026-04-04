@@ -5,37 +5,40 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
 
 /** Cmd/Ctrl+K — prompt URL, matches common editor UX. */
-const LinkKeyboard = Extension.create({
-  name: "bananyLinkKeyboard",
-  addKeyboardShortcuts() {
-    return {
-      "Mod-k": () => {
-        const { editor } = this;
-        const prev = (editor.getAttributes("link").href as string) || "";
-        const url = window.prompt("URL", prev || "https://");
-        if (url === null) return true;
-        const trimmed = url.trim();
-        if (trimmed === "") {
-          editor.chain().focus().extendMarkRange("link").unsetLink().run();
-        } else {
-          editor
-            .chain()
-            .focus()
-            .extendMarkRange("link")
-            .setLink({ href: trimmed })
-            .run();
-        }
-        return true;
-      },
-    };
-  },
-});
+function createLinkKeyboard(linkPromptLabel: string) {
+  return Extension.create({
+    name: "bananyLinkKeyboard",
+    addKeyboardShortcuts() {
+      return {
+        "Mod-k": () => {
+          const { editor } = this;
+          const prev = (editor.getAttributes("link").href as string) || "";
+          const url = window.prompt(linkPromptLabel, prev || "https://");
+          if (url === null) return true;
+          const trimmed = url.trim();
+          if (trimmed === "") {
+            editor.chain().focus().extendMarkRange("link").unsetLink().run();
+          } else {
+            editor
+              .chain()
+              .focus()
+              .extendMarkRange("link")
+              .setLink({ href: trimmed })
+              .run();
+          }
+          return true;
+        },
+      };
+    },
+  });
+}
 
 export function getBananyEditorExtensions(
-  placeholder = "Tell your story…",
-  options?: { allowImages?: boolean },
+  placeholder: string,
+  options?: { allowImages?: boolean; linkPromptLabel?: string },
 ) {
   const allowImages = options?.allowImages ?? true;
+  const linkPromptLabel = options?.linkPromptLabel ?? "URL";
 
   const extensions: AnyExtension[] = [
     StarterKit.configure({
@@ -53,7 +56,7 @@ export function getBananyEditorExtensions(
       defaultProtocol: "https",
       HTMLAttributes: { class: "bb-editor-link" },
     }),
-    LinkKeyboard,
+    createLinkKeyboard(linkPromptLabel),
     Placeholder.configure({
       placeholder,
       showOnlyWhenEditable: true,

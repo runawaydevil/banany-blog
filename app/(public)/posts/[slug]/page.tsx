@@ -2,10 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { sanitizePostHtml } from "@/lib/sanitize-html";
-import { toValidDate, toISOStringSafe } from "@/lib/dates";
+import { toISOStringSafe, toValidDate } from "@/lib/dates";
 import { getSiteSettings } from "@/lib/site";
 import { getEffectivePublicOrigin } from "@/lib/public-origin";
 import { NewsletterInline } from "@/components/newsletter-inline";
+import { intlLocale, t } from "@/lib/i18n";
 
 export async function generateMetadata({
   params,
@@ -13,11 +14,17 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = await prisma.post.findUnique({ where: { slug } });
-  if (!post || !post.published) return { title: "Not found" };
-  const site = await getSiteSettings();
+  const [post, site] = await Promise.all([
+    prisma.post.findUnique({ where: { slug } }),
+    getSiteSettings(),
+  ]);
+
+  if (!post || !post.published) {
+    return { title: t(site?.locale, "common.notFound") };
+  }
+
   const base = getEffectivePublicOrigin(site).replace(/\/$/, "");
-  const pageTitle = post.title?.trim() || "Post";
+  const pageTitle = post.title?.trim() || t(site?.locale, "post.note");
   return {
     title: pageTitle,
     description: post.excerpt?.trim() || undefined,
@@ -34,12 +41,16 @@ export default async function PostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = await prisma.post.findUnique({ where: { slug } });
+  const [post, site] = await Promise.all([
+    prisma.post.findUnique({ where: { slug } }),
+    getSiteSettings(),
+  ]);
   if (!post || !post.published) notFound();
 
-  const site = await getSiteSettings();
+  const locale = site?.locale;
   const date = toValidDate(post.publishedAt) ?? toValidDate(post.createdAt);
-  const dateIso = toISOStringSafe(post.publishedAt) ?? toISOStringSafe(post.createdAt);
+  const dateIso =
+    toISOStringSafe(post.publishedAt) ?? toISOStringSafe(post.createdAt);
   const html = sanitizePostHtml(post.content);
 
   return (
@@ -48,29 +59,34 @@ export default async function PostPage({
         href="/"
         className="text-xs text-[var(--bb-text-muted)] hover:text-[var(--bb-link)]"
       >
-        ← Home
+        {t(locale, "common.backHome")}
       </Link>
       {post.title ? (
         <h1 className="mt-6 font-[family-name:var(--bb-font-heading)] text-3xl leading-tight text-[var(--bb-heading)]">
           {post.title}
         </h1>
       ) : (
-        <p className="mt-6 text-sm text-[var(--bb-text-muted)]">Note</p>
+        <p className="mt-6 text-sm text-[var(--bb-text-muted)]">
+          {t(locale, "post.note")}
+        </p>
       )}
       <div className="mt-2 flex flex-wrap gap-2 text-xs text-[var(--bb-text-muted)]">
         {date && dateIso ? (
           <time dateTime={dateIso}>
-            {date.toLocaleDateString(undefined, {
+            {date.toLocaleDateString(intlLocale(locale), {
               year: "numeric",
               month: "long",
               day: "numeric",
             })}
           </time>
         ) : null}
-        <span>{post.type.toLowerCase()}</span>
-        {post.tags.map((t) => (
-          <span key={t} className="rounded bg-[var(--bb-surface-soft)] px-1.5 py-0.5">
-            {t}
+        <span>{t(locale, `postType.${post.type.toLowerCase()}`)}</span>
+        {post.tags.map((tag) => (
+          <span
+            key={tag}
+            className="rounded bg-[var(--bb-surface-soft)] px-1.5 py-0.5"
+          >
+            {tag}
           </span>
         ))}
       </div>

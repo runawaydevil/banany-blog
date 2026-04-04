@@ -30,6 +30,22 @@ describe("theme presets", () => {
     expect(backgroundSet.size).toBe(extraPresets.length);
   });
 
+  it("registers vaporwave neon with its dedicated label, typography, and neon tokens", () => {
+    expect(THEME_PRESET_IDS).toContain("vaporwave-neon");
+    expect(PRESET_LABELS["vaporwave-neon"]).toBe("Vaporwave Neon");
+    expect(THEME_PRESETS["vaporwave-neon"]).toMatchObject({
+      bg: "#12091f",
+      accent: "#ff4fd8",
+      link: "#4de7ff",
+      focusRing: "#44f7ff",
+    });
+    expect(TYPOGRAPHY_BY_PRESET["vaporwave-neon"]).toEqual({
+      body: "ibm-plex-sans",
+      heading: "space-grotesk",
+      mono: "ibm-plex-mono",
+    });
+  });
+
   it("keeps Catppuccin flavors visually distinct inside the same family", () => {
     const catppuccinPresets = [
       "catppuccin-latte",

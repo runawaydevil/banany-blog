@@ -1,4 +1,5 @@
 import sanitizeHtml from "sanitize-html";
+import { htmlLang, t, tm } from "@/lib/i18n";
 import type { SemanticTokens } from "@/lib/themes";
 
 function escapeHtml(value: string): string {
@@ -57,6 +58,7 @@ export function renderNewsletterEmail(input: {
   bodyHtml: string;
   bodyFontStack: string;
   headingFontStack: string;
+  locale: string | null | undefined;
   logoUrl?: string | null;
   previewText?: string | null;
   siteTitle: string;
@@ -69,7 +71,7 @@ export function renderNewsletterEmail(input: {
     : "";
 
   return `<!doctype html>
-<html lang="en">
+<html lang="${htmlLang(input.locale)}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -110,8 +112,14 @@ export function renderNewsletterEmail(input: {
           ${input.bodyHtml}
         </div>
         <div class="bb-foot">
-          <p style="margin:0 0 10px;">You are receiving this because you subscribed to ${escapeHtml(input.siteTitle)}.</p>
-          <p style="margin:0;"><a href="${escapeHtml(input.unsubscribeUrl)}" target="_blank" rel="noopener noreferrer">Unsubscribe instantly</a>.</p>
+          <p style="margin:0 0 10px;">${escapeHtml(
+            tm(input.locale, "email.newsletter.receivingBecause", {
+              siteTitle: input.siteTitle,
+            }),
+          )}</p>
+          <p style="margin:0;"><a href="${escapeHtml(input.unsubscribeUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(
+            t(input.locale, "email.newsletter.unsubscribe"),
+          )}</a>.</p>
         </div>
       </div>
     </div>

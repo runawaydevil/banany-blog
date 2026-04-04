@@ -7,9 +7,12 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCurrentLocale } from "@/components/locale-provider";
 import { resolveLoginCallbackUrl } from "@/lib/callback-url";
+import { t } from "@/lib/i18n";
 
 export default function LoginPage() {
+  const locale = useCurrentLocale();
   const search = useSearchParams();
   const callbackUrl = useMemo(
     () => resolveLoginCallbackUrl(search.get("callbackUrl")),
@@ -31,7 +34,7 @@ export default function LoginPage() {
     });
     setLoading(false);
     if (res?.error) {
-      setErr("Invalid email or password.");
+      setErr(t(locale, "login.invalidCredentials"));
       return;
     }
     window.location.href = callbackUrl;
@@ -40,12 +43,14 @@ export default function LoginPage() {
   return (
     <div className="rounded-lg border border-[var(--bb-border)] bg-[var(--bb-surface)] p-8 shadow-sm">
       <h1 className="font-[family-name:var(--bb-font-heading)] text-xl text-[var(--bb-heading)]">
-        Dashboard
+        {t(locale, "login.title")}
       </h1>
-      <p className="mt-1 text-sm text-[var(--bb-text-muted)]">Sign in to continue.</p>
+      <p className="mt-1 text-sm text-[var(--bb-text-muted)]">
+        {t(locale, "login.subtitle")}
+      </p>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t(locale, "common.email")}</Label>
           <Input
             id="email"
             type="email"
@@ -56,7 +61,7 @@ export default function LoginPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t(locale, "common.password")}</Label>
           <Input
             id="password"
             type="password"
@@ -70,12 +75,12 @@ export default function LoginPage() {
           <p className="text-sm text-[var(--bb-danger)]">{err}</p>
         ) : null}
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Signing in…" : "Sign in"}
+          {loading ? t(locale, "login.loading") : t(locale, "login.action")}
         </Button>
       </form>
       <p className="mt-4 text-center text-xs text-[var(--bb-text-muted)]">
         <Link href="/forgot-password" className="hover:underline">
-          Forgot password?
+          {t(locale, "login.forgotPassword")}
         </Link>
       </p>
     </div>

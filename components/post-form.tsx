@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { Post, PostType } from "@prisma/client";
+import { useCurrentLocale } from "@/components/locale-provider";
 import { TiptapEditor } from "@/components/tiptap-editor";
 import { EditorShell } from "@/components/editor/editor-shell";
 import {
@@ -14,6 +15,7 @@ import { PostMetadataPanel } from "@/components/editor/post-metadata-panel";
 import { PostDeleteButton } from "@/components/post-delete-button";
 import type { SaveUiState } from "@/components/editor/save-state-indicator";
 import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
+import { t } from "@/lib/i18n";
 import { toast } from "sonner";
 
 function toDatetimeLocalValue(d: Date = new Date()): string {
@@ -29,6 +31,7 @@ function hasEditorBody(html: string): boolean {
 
 export function PostForm({ initial }: { initial?: Post }) {
   const router = useRouter();
+  const locale = useCurrentLocale();
   const [title, setTitle] = useState(initial?.title ?? "");
   const [content, setContent] = useState(initial?.content ?? "<p></p>");
   const [type, setType] = useState<PostType>(initial?.type ?? "POST");
@@ -104,8 +107,8 @@ export function PostForm({ initial }: { initial?: Post }) {
     ): Promise<boolean> => {
       if (!initial && !hasEditorBody(content)) {
         if (!silent) {
-          setErr("Add text or an image before saving.");
-          toast.error("Add text or an image before saving.");
+          setErr(t(locale, "editor.addTextBeforeSaving"));
+          toast.error(t(locale, "editor.addTextBeforeSaving"));
         }
         return false;
       }
@@ -122,7 +125,7 @@ export function PostForm({ initial }: { initial?: Post }) {
         });
         if (!res.ok) {
           const d = await res.json().catch(() => ({}));
-          throw new Error(d.error || "Save failed");
+          throw new Error(d.error || t(locale, "editor.saveFailed"));
         }
         const saved = (await res.json()) as Post;
         if (overrides?.published === true) setPublished(true);
@@ -135,15 +138,20 @@ export function PostForm({ initial }: { initial?: Post }) {
         if (!silent) {
           if (overrides?.published === true) {
             toast.success(
-              initial?.published ? "Post updated." : "Post published.",
+              initial?.published
+                ? t(locale, "editor.postUpdated")
+                : t(locale, "editor.postPublished"),
             );
           } else {
-            toast.success("Post saved.");
+            toast.success(t(locale, "editor.postSaved"));
           }
         }
         return true;
       } catch (e) {
-        const message = e instanceof Error ? e.message : "Save failed";
+        const message =
+          e instanceof Error && e.message
+            ? e.message
+            : t(locale, "editor.saveFailed");
         setErr(message);
         if (!silent) toast.error(message);
         return false;
@@ -151,7 +159,7 @@ export function PostForm({ initial }: { initial?: Post }) {
         if (!silent) setSaving(false);
       }
     },
-    [initial, payload, router, content],
+    [initial, payload, router, content, locale],
   );
 
   useEffect(() => {
@@ -183,14 +191,18 @@ export function PostForm({ initial }: { initial?: Post }) {
   const topBar = (
     <EditorTopBar
       backHref="/dashboard/posts"
-      backLabel="← Posts"
+      backLabel={t(locale, "editor.backPosts")}
       saveState={saveUiState}
       savedAt={savedAt}
       onOpenMetadata={() => setMetadataOpen(true)}
       showMetadataButton
       onSave={() => void save(false)}
       saving={saving}
-      publishLabel={initial?.published ? "Update" : "Publish"}
+      publishLabel={
+        initial?.published
+          ? t(locale, "editor.update")
+          : t(locale, "editor.publish")
+      }
       onPublish={async () => {
         const ok = await save(false, { published: true });
         if (ok) router.push("/dashboard/posts");
@@ -206,7 +218,7 @@ export function PostForm({ initial }: { initial?: Post }) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  View live
+                  {t(locale, "editor.viewLive")}
                 </Link>
                 <div className="my-1 border-t border-[var(--bb-border)]" />
               </>
@@ -215,7 +227,7 @@ export function PostForm({ initial }: { initial?: Post }) {
               postId={initial.id}
               postTitle={initial.title}
               redirectTo="/dashboard/posts"
-              label="Delete post"
+              label={t(locale, "editor.deletePost")}
               variant="ghost"
               fullWidth
               className="h-auto px-2 py-1.5 text-left"
@@ -232,15 +244,15 @@ export function PostForm({ initial }: { initial?: Post }) {
         <p className="mb-6 text-sm text-[var(--bb-danger)]">{err}</p>
       ) : null}
       <input
-        aria-label="Title"
-        placeholder="Title"
+        aria-label={t(locale, "editor.titlePlaceholder")}
+        placeholder={t(locale, "editor.titlePlaceholder")}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         className="mb-1 w-full border-none bg-transparent px-0 py-1 text-[2.15rem] font-[family-name:var(--bb-font-heading)] font-medium leading-[1.15] tracking-tight text-[var(--bb-heading)] shadow-none placeholder:text-[var(--bb-text-muted)]/55 focus:outline-none focus:ring-0 sm:text-[2.5rem]"
       />
       <textarea
-        aria-label="Excerpt"
-        placeholder="Optional excerpt — plain text, max 300 characters (used for SEO description)"
+        aria-label={t(locale, "editor.excerptPlaceholder")}
+        placeholder={t(locale, "editor.excerptPlaceholder")}
         value={excerpt}
         onChange={(e) => setExcerpt(e.target.value)}
         maxLength={300}

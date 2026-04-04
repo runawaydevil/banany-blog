@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
 import { getEffectivePublicOrigin } from "@/lib/public-origin";
 import { toISOStringSafe } from "@/lib/dates";
+import { t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ function escapeXml(s: string) {
 export async function GET() {
   const site = await getSiteSettings();
   if (!site?.setupComplete) {
-    return new Response("Not found", { status: 404 });
+    return new Response(t(site?.locale, "common.notFound"), { status: 404 });
   }
 
   const base = getEffectivePublicOrigin(site).replace(/\/$/, "");
@@ -30,7 +31,7 @@ export async function GET() {
     .map((p) => {
       const link = `${base}/posts/${p.slug}`;
       const pub = toISOStringSafe(p.publishedAt) ?? toISOStringSafe(p.createdAt);
-      const title = escapeXml(p.title || "Note");
+      const title = escapeXml(p.title || t(site.locale, "post.note"));
       const desc = escapeXml(
         (p.excerpt || "").slice(0, 500) || p.title || "",
       );

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button, type ButtonProps } from "@/components/ui/button";
+import { useCurrentLocale } from "@/components/locale-provider";
+import { t, tm } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type PostDeleteButtonProps = {
@@ -14,29 +16,33 @@ type PostDeleteButtonProps = {
   fullWidth?: boolean;
 } & Pick<ButtonProps, "variant" | "size" | "className">;
 
-function deleteConfirmMessage(postTitle?: string | null) {
+function deleteConfirmMessage(
+  locale: string,
+  postTitle?: string | null,
+) {
   const title = postTitle?.trim();
   return title
-    ? `Delete "${title}"? This action cannot be undone.`
-    : "Delete this post? This action cannot be undone.";
+    ? tm(locale, "delete.confirmTitled", { title })
+    : t(locale, "delete.confirmUntitled");
 }
 
 export function PostDeleteButton({
   postId,
   postTitle,
   redirectTo,
-  label = "Delete",
+  label,
   fullWidth = false,
   variant = "outline",
   size = "sm",
   className,
 }: PostDeleteButtonProps) {
   const router = useRouter();
+  const locale = useCurrentLocale();
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
     if (deleting) return;
-    if (!window.confirm(deleteConfirmMessage(postTitle))) return;
+    if (!window.confirm(deleteConfirmMessage(locale, postTitle))) return;
 
     setDeleting(true);
     try {
@@ -48,7 +54,7 @@ export function PostDeleteButton({
         throw new Error(data?.error || "Delete failed");
       }
 
-      toast.success("Post deleted.");
+      toast.success(t(locale, "delete.success"));
 
       if (redirectTo) {
         router.replace(redirectTo);
@@ -60,7 +66,10 @@ export function PostDeleteButton({
 
       router.refresh();
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Delete failed";
+      const message =
+        e instanceof Error && e.message
+          ? e.message
+          : t(locale, "delete.error");
       toast.error(message);
     } finally {
       setDeleting(false);
@@ -83,7 +92,7 @@ export function PostDeleteButton({
         className,
       )}
     >
-      {deleting ? "Deleting..." : label}
+      {deleting ? t(locale, "delete.deleting") : label ?? t(locale, "delete.button")}
     </Button>
   );
 }

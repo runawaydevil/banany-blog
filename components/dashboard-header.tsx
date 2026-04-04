@@ -62,7 +62,7 @@ export function DashboardHeader({
 
         <nav
           className="hidden items-center gap-x-4 overflow-x-auto text-xs sm:flex sm:text-sm"
-          aria-label="Dashboard"
+          aria-label={t(loc, "nav.dashboardLabel")}
         >
           {links.map((l) => (
             <Link key={l.href} href={l.href} className={linkClass(l.href)}>
@@ -74,13 +74,13 @@ export function DashboardHeader({
             onClick={() => signOut({ callbackUrl: "/" })}
             className="shrink-0 whitespace-nowrap text-[var(--bb-text-muted)] hover:text-[var(--bb-danger)]"
           >
-            Sign out
+            {t(loc, "common.signOut")}
           </button>
         </nav>
 
         <details className="relative sm:hidden">
           <summary className="cursor-pointer list-none text-xs text-[var(--bb-text-muted)] [&::-webkit-details-marker]:hidden">
-            Menu
+            {t(loc, "common.menu")}
           </summary>
           <div className="absolute right-0 top-full z-50 mt-2 flex min-w-[11rem] flex-col gap-0.5 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)] p-2 shadow-md">
             {links.map((l) => (
@@ -102,7 +102,7 @@ export function DashboardHeader({
               onClick={() => signOut({ callbackUrl: "/" })}
               className="rounded px-2 py-2 text-left text-sm text-[var(--bb-text-muted)] hover:bg-[var(--bb-surface-soft)] hover:text-[var(--bb-danger)]"
             >
-              Sign out
+              {t(loc, "common.signOut")}
             </button>
           </div>
         </details>

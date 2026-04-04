@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCurrentLocale } from "@/components/locale-provider";
+import { normalizeLocale, t } from "@/lib/i18n";
 import {
   PRESET_LABELS,
   THEME_PRESET_IDS,
@@ -15,6 +17,7 @@ const PRESETS = [...THEME_PRESET_IDS] as ThemePresetId[];
 
 export default function SetupPage() {
   const router = useRouter();
+  const appLocale = useCurrentLocale();
   const [ready, setReady] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -27,7 +30,20 @@ export default function SetupPage() {
     siteTitle: "",
     publicUrl: "",
     themePreset: "paper" as ThemePresetId,
+    locale: normalizeLocale(appLocale),
   });
+  const uiLocale = form.locale;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const browserLocale = navigator.language.toLowerCase().startsWith("pt")
+      ? "pt"
+      : normalizeLocale(appLocale);
+    setForm((current) => ({
+      ...current,
+      locale: current.locale || browserLocale,
+    }));
+  }, [appLocale]);
 
   useEffect(() => {
     fetch("/api/site")
@@ -69,7 +85,7 @@ export default function SetupPage() {
     setLoading(false);
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
-      setErr((d as { error?: string }).error || "Setup failed");
+      setErr((d as { error?: string }).error || t(uiLocale, "setup.failed"));
       return;
     }
     setDone(true);
@@ -79,14 +95,16 @@ export default function SetupPage() {
 
   if (!ready) {
     return (
-      <p className="text-center text-sm text-[var(--bb-text-muted)]">Loading…</p>
+      <p className="text-center text-sm text-[var(--bb-text-muted)]">
+        {t(uiLocale, "common.loading")}
+      </p>
     );
   }
 
   if (done) {
     return (
       <p className="text-center text-sm text-[var(--bb-text-muted)]">
-        Redirecting to sign in…
+        {t(uiLocale, "setup.redirecting")}
       </p>
     );
   }
@@ -94,11 +112,11 @@ export default function SetupPage() {
   return (
     <div className="rounded-lg border border-[var(--bb-border)] bg-[var(--bb-surface)] p-8 shadow-sm">
       <h1 className="font-[family-name:var(--bb-font-heading)] text-xl text-[var(--bb-heading)]">
-        Welcome to Banany Blog
+        {t(uiLocale, "setup.title")}
       </h1>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="ownerName">Your name</Label>
+          <Label htmlFor="ownerName">{t(uiLocale, "setup.ownerName")}</Label>
           <Input
             id="ownerName"
             value={form.ownerName}
@@ -109,7 +127,7 @@ export default function SetupPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="ownerEmail">Email</Label>
+          <Label htmlFor="ownerEmail">{t(uiLocale, "common.email")}</Label>
           <Input
             id="ownerEmail"
             type="email"
@@ -121,7 +139,7 @@ export default function SetupPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password (min 8)</Label>
+          <Label htmlFor="password">{t(uiLocale, "setup.passwordHint")}</Label>
           <Input
             id="password"
             type="password"
@@ -134,7 +152,7 @@ export default function SetupPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="siteTitle">Site title</Label>
+          <Label htmlFor="siteTitle">{t(uiLocale, "setup.siteTitle")}</Label>
           <Input
             id="siteTitle"
             value={form.siteTitle}
@@ -145,7 +163,7 @@ export default function SetupPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="publicUrl">Public site URL (canonical)</Label>
+          <Label htmlFor="publicUrl">{t(uiLocale, "setup.publicUrl")}</Label>
           <Input
             id="publicUrl"
             type="url"
@@ -159,19 +177,33 @@ export default function SetupPage() {
           />
           {trustedFromEnv ? (
             <p className="text-xs text-[var(--bb-text-muted)]">
-              Taken from <code>APP_URL</code> (or related env) on the server. Change
-              the environment variable to use a different public URL.
+              {t(uiLocale, "setup.publicUrlEnvTrusted")}
             </p>
           ) : (
             <p className="text-xs text-[var(--bb-text-muted)]">
-              Use the URL users type in the browser (e.g. https://blog.example.com).
-              For production, set <code>APP_URL</code> so this cannot drift from your
-              deployment.
+              {t(uiLocale, "setup.publicUrlHelp")}
             </p>
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="theme">Initial theme</Label>
+          <Label htmlFor="setup-locale">{t(uiLocale, "setup.language")}</Label>
+          <select
+            id="setup-locale"
+            className="flex h-9 w-full rounded-md border border-[var(--bb-border)] bg-[var(--bb-input-bg)] px-3 text-sm"
+            value={form.locale}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                locale: normalizeLocale(e.target.value),
+              }))
+            }
+          >
+            <option value="en">{t("en", "locale.en")}</option>
+            <option value="pt">{t("pt", "locale.pt")}</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="theme">{t(uiLocale, "setup.initialTheme")}</Label>
           <select
             id="theme"
             className="flex h-9 w-full rounded-md border border-[var(--bb-border)] bg-[var(--bb-input-bg)] px-3 text-sm"
@@ -194,7 +226,7 @@ export default function SetupPage() {
           <p className="text-sm text-[var(--bb-danger)]">{err}</p>
         ) : null}
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Saving…" : "Finish setup"}
+          {loading ? t(uiLocale, "setup.saving") : t(uiLocale, "setup.finish")}
         </Button>
       </form>
     </div>

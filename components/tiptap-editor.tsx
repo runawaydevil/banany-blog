@@ -5,6 +5,8 @@ import { useCallback } from "react";
 import { getBananyEditorExtensions } from "@/components/editor/banany-editor-extensions";
 import { EditorBubbleMenu } from "@/components/editor/editor-bubble-menu";
 import { EditorFloatingMenu } from "@/components/editor/editor-floating-menu";
+import { useCurrentLocale } from "@/components/locale-provider";
+import { t } from "@/lib/i18n";
 
 export function TiptapEditor({
   content,
@@ -17,6 +19,8 @@ export function TiptapEditor({
   placeholder?: string;
   allowImages?: boolean;
 }) {
+  const locale = useCurrentLocale();
+
   const insertImage = useCallback((ed: Editor) => {
     const input = document.createElement("input");
     input.type = "file";
@@ -36,9 +40,13 @@ export function TiptapEditor({
   }, []);
 
   const editor = useEditor({
-    extensions: getBananyEditorExtensions(placeholder ?? "Tell your story…", {
-      allowImages,
-    }),
+    extensions: getBananyEditorExtensions(
+      placeholder ?? t(locale, "editor.contentPlaceholder"),
+      {
+        allowImages,
+        linkPromptLabel: t(locale, "editor.linkPrompt"),
+      },
+    ),
     content,
     immediatelyRender: false,
     editorProps: {

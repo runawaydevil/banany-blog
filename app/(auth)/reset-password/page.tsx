@@ -6,8 +6,11 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCurrentLocale } from "@/components/locale-provider";
+import { t } from "@/lib/i18n";
 
 function Form() {
+  const locale = useCurrentLocale();
   const search = useSearchParams();
   const token = search.get("token") || "";
   const [password, setPassword] = useState("");
@@ -27,22 +30,26 @@ function Form() {
     const data = await res.json().catch(() => ({}));
     setLoading(false);
     if (!res.ok) {
-      setErr(data.error || "Reset failed.");
+      setErr(data.error || t(locale, "reset.error"));
       return;
     }
     setOk(true);
   }
 
   if (!token) {
-    return <p className="text-sm text-[var(--bb-danger)]">Missing token.</p>;
+    return (
+      <p className="text-sm text-[var(--bb-danger)]">
+        {t(locale, "reset.missingToken")}
+      </p>
+    );
   }
 
   if (ok) {
     return (
       <p className="text-sm text-[var(--bb-success)]">
-        Password updated.{" "}
+        {t(locale, "reset.success")}{" "}
         <Link href="/login" className="underline">
-          Sign in
+          {t(locale, "login.action")}
         </Link>
       </p>
     );
@@ -51,7 +58,7 @@ function Form() {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="password">New password</Label>
+        <Label htmlFor="password">{t(locale, "reset.newPassword")}</Label>
         <Input
           id="password"
           type="password"
@@ -65,20 +72,27 @@ function Form() {
         <p className="text-sm text-[var(--bb-danger)]">{err}</p>
       ) : null}
       <Button type="submit" className="w-full" disabled={loading}>
-        Update password
+        {t(locale, "reset.action")}
       </Button>
     </form>
   );
 }
 
 export default function ResetPasswordPage() {
+  const locale = useCurrentLocale();
   return (
     <div className="rounded-lg border border-[var(--bb-border)] bg-[var(--bb-surface)] p-8 shadow-sm">
       <h1 className="font-[family-name:var(--bb-font-heading)] text-xl text-[var(--bb-heading)]">
-        New password
+        {t(locale, "reset.title")}
       </h1>
       <div className="mt-6">
-        <Suspense fallback={<p className="text-sm text-[var(--bb-text-muted)]">Loading…</p>}>
+        <Suspense
+          fallback={
+            <p className="text-sm text-[var(--bb-text-muted)]">
+              {t(locale, "common.loading")}
+            </p>
+          }
+        >
           <Form />
         </Suspense>
       </div>
