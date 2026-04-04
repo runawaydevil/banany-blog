@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
 import { z } from "zod";
+import { THEME_PRESET_IDS } from "@/lib/themes";
 import {
   getTrustedAppUrl,
   normalizePublicOrigin,
@@ -24,16 +25,7 @@ const bodySchema = z.object({
         return false;
       }
     }, "Invalid URL"),
-  themePreset: z
-    .enum([
-      "paper",
-      "ink",
-      "catppuccin-latte",
-      "catppuccin-frappe",
-      "catppuccin-macchiato",
-      "catppuccin-mocha",
-    ])
-    .optional(),
+  themePreset: z.enum(THEME_PRESET_IDS).optional(),
 });
 
 export async function POST(req: Request) {

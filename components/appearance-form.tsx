@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PRESET_LABELS, type ThemePresetId } from "@/lib/themes";
+import { PRESET_LABELS, THEME_PRESET_IDS, type ThemePresetId } from "@/lib/themes";
 import type { SemanticTokens } from "@/lib/themes";
 import { DEFAULT_BRANDING_LOGO } from "@/lib/branding";
 import { buildFaviconCacheBust, buildFaviconHref } from "@/lib/favicon";
 
-const PRESETS = Object.keys(PRESET_LABELS) as ThemePresetId[];
+const PRESETS = [...THEME_PRESET_IDS] as ThemePresetId[];
 
 type SitePatchResponse = {
   ok: true;

@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   PRESET_LABELS,
+  THEME_PRESET_IDS,
   type ThemePresetId,
 } from "@/lib/themes";
 
-const PRESETS = Object.keys(PRESET_LABELS) as ThemePresetId[];
+const PRESETS = [...THEME_PRESET_IDS] as ThemePresetId[];
 
 export default function SetupPage() {
   const router = useRouter();

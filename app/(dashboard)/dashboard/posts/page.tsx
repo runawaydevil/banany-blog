@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { PostDeleteButton } from "@/components/post-delete-button";
+
 export default async function PostsAdminPage() {
   const posts = await prisma.post.findMany({
     orderBy: { updatedAt: "desc" },
@@ -32,18 +34,28 @@ export default async function PostsAdminPage() {
                 {p.slug} · {p.published ? "published" : "draft"} · {p.type}
               </p>
             </div>
-            {p.published ? (
-              <Link
-                href={`/posts/${p.slug}`}
-                className="text-xs text-[var(--bb-link)] hover:underline"
-              >
-                View
-              </Link>
-            ) : (
-              <span className="text-xs text-[var(--bb-text-muted)]" title="Publish the post to open it on the public site">
-                View (draft)
-              </span>
-            )}
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              {p.published ? (
+                <Link
+                  href={`/posts/${p.slug}`}
+                  className="text-xs text-[var(--bb-link)] hover:underline"
+                >
+                  View
+                </Link>
+              ) : (
+                <span
+                  className="text-xs text-[var(--bb-text-muted)]"
+                  title="Publish the post to open it on the public site"
+                >
+                  View (draft)
+                </span>
+              )}
+              <PostDeleteButton
+                postId={p.id}
+                postTitle={p.title}
+                className="text-[var(--bb-danger)] hover:text-[var(--bb-danger)]"
+              />
+            </div>
           </li>
         ))}
         {posts.length === 0 ? (

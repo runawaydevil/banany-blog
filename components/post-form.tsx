@@ -11,6 +11,7 @@ import {
   EditorMoreMenu,
 } from "@/components/editor/editor-top-bar";
 import { PostMetadataPanel } from "@/components/editor/post-metadata-panel";
+import { PostDeleteButton } from "@/components/post-delete-button";
 import type { SaveUiState } from "@/components/editor/save-state-indicator";
 import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
 import { toast } from "sonner";
@@ -195,16 +196,30 @@ export function PostForm({ initial }: { initial?: Post }) {
         if (ok) router.push("/dashboard/posts");
       }}
       extraActions={
-        initial?.published && initial.slug ? (
+        initial ? (
           <EditorMoreMenu>
-            <Link
-              href={`/posts/${initial.slug}`}
-              className="block rounded-md px-2 py-1.5 text-[var(--bb-text)] hover:bg-[var(--bb-surface-soft)]"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View live
-            </Link>
+            {initial.published && initial.slug ? (
+              <>
+                <Link
+                  href={`/posts/${initial.slug}`}
+                  className="block rounded-md px-2 py-1.5 text-[var(--bb-text)] hover:bg-[var(--bb-surface-soft)]"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View live
+                </Link>
+                <div className="my-1 border-t border-[var(--bb-border)]" />
+              </>
+            ) : null}
+            <PostDeleteButton
+              postId={initial.id}
+              postTitle={initial.title}
+              redirectTo="/dashboard/posts"
+              label="Delete post"
+              variant="ghost"
+              fullWidth
+              className="h-auto px-2 py-1.5 text-left"
+            />
           </EditorMoreMenu>
         ) : null
       }
