@@ -43,6 +43,8 @@ export default async function NewsletterPage() {
         id: campaign.id,
         subject: campaign.subject,
         previewText: campaign.previewText,
+        kind: campaign.kind,
+        status: campaign.status,
         recipientCount: campaign.recipientCount,
         failureCount: campaign.failureCount,
         sentAt: campaign.sentAt.toISOString(),

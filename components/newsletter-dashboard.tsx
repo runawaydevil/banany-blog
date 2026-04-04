@@ -27,6 +27,8 @@ type CampaignRow = {
   id: string;
   subject: string;
   previewText: string | null;
+  kind: "MANUAL" | "POST_PUBLISH";
+  status: "SENT" | "PARTIAL" | "FAILED";
   recipientCount: number;
   failureCount: number;
   sentAt: string;
@@ -35,6 +37,28 @@ type CampaignRow = {
 function formatDate(value: string | null, locale: string) {
   if (!value) return "—";
   return new Date(value).toLocaleString(intlLocale(locale));
+}
+
+function campaignKindLabel(
+  kind: CampaignRow["kind"],
+  locale: string,
+): string {
+  return kind === "POST_PUBLISH"
+    ? t(locale, "newsletterDashboard.campaignKindPostPublish")
+    : t(locale, "newsletterDashboard.campaignKindManual");
+}
+
+function campaignStatusLabel(
+  status: CampaignRow["status"],
+  locale: string,
+): string {
+  if (status === "PARTIAL") {
+    return t(locale, "newsletterDashboard.campaignStatusPartial");
+  }
+  if (status === "FAILED") {
+    return t(locale, "newsletterDashboard.campaignStatusFailed");
+  }
+  return t(locale, "newsletterDashboard.campaignStatusSent");
 }
 
 export function NewsletterDashboard({
@@ -375,6 +399,14 @@ export function NewsletterDashboard({
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
+                    <div className="mb-2 flex flex-wrap gap-2">
+                      <span className="rounded-full border border-[var(--bb-border)] bg-[var(--bb-surface)] px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-[var(--bb-text-muted)]">
+                        {campaignKindLabel(campaign.kind, locale)}
+                      </span>
+                      <span className="rounded-full border border-[var(--bb-border)] bg-[var(--bb-surface)] px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-[var(--bb-text-muted)]">
+                        {campaignStatusLabel(campaign.status, locale)}
+                      </span>
+                    </div>
                     <h3 className="text-sm font-medium text-[var(--bb-heading)]">
                       {campaign.subject}
                     </h3>

@@ -47,6 +47,9 @@ export function SettingsForm({
   const [newsletterPost, setNewsletterPost] = useState(
     site.newsletterEnabledPost,
   );
+  const [newsletterAutoPostPublish, setNewsletterAutoPostPublish] = useState(
+    site.newsletterAutoPostPublishEnabled,
+  );
 
   const [nav, setNav] = useState<
     { label: string; href: string; order: number }[]
@@ -75,6 +78,7 @@ export function SettingsForm({
       homePageSlug: homePageSlug.trim() || null,
       newsletterEnabledHome: newsletterHome,
       newsletterEnabledPost: newsletterPost,
+      newsletterAutoPostPublishEnabled: newsletterAutoPostPublish,
     };
     const res = await fetch("/api/site", {
       method: "PATCH",
@@ -323,6 +327,19 @@ export function SettingsForm({
           />
           {t(locale, "settings.newsletterPost")}
         </label>
+        <div className="space-y-2 rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface-soft)] p-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={newsletterAutoPostPublish}
+              onChange={(e) => setNewsletterAutoPostPublish(e.target.checked)}
+            />
+            {t(locale, "settings.newsletterAutoPostPublish")}
+          </label>
+          <p className="text-xs text-[var(--bb-text-muted)]">
+            {t(locale, "settings.newsletterAutoPostPublishHelp")}
+          </p>
+        </div>
         <Button type="button" onClick={saveSite} disabled={saving}>
           {saving
             ? t(locale, "appearance.saving")

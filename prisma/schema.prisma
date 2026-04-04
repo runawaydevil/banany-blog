@@ -36,6 +36,7 @@ model SiteSettings {
 
   newsletterEnabledHome Boolean @default(false)
   newsletterEnabledPost Boolean @default(false)
+  newsletterAutoPostPublishEnabled Boolean @default(false)
 
   setupComplete Boolean @default(false)
   homePageSlug  String?
@@ -75,11 +76,13 @@ model Post {
   published   Boolean   @default(false)
   scheduledAt DateTime?
   publishedAt DateTime?
+  notifySubscribersOnPublish Boolean @default(true)
   pinned      Boolean   @default(false)
   tags        String[]  @default([])
   linkUrl     String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  newsletterCampaigns NewsletterCampaign[]
 }
 
 model Page {
@@ -109,17 +112,32 @@ model Subscriber {
   updatedAt        DateTime @updatedAt
 }
 
+enum NewsletterCampaignKind {
+  MANUAL
+  POST_PUBLISH
+}
+
+enum NewsletterCampaignStatus {
+  SENT
+  PARTIAL
+  FAILED
+}
+
 model NewsletterCampaign {
-  id            String   @id @default(cuid())
-  subject       String
-  previewText   String?  @db.VarChar(300)
-  bodyHtml      String   @db.Text
-  bodyText      String   @db.Text
+  id             String                   @id @default(cuid())
+  kind           NewsletterCampaignKind   @default(MANUAL)
+  status         NewsletterCampaignStatus @default(SENT)
+  postId         String?                  @unique
+  post           Post?                    @relation(fields: [postId], references: [id], onDelete: SetNull)
+  subject        String
+  previewText    String?                  @db.VarChar(300)
+  bodyHtml       String                   @db.Text
+  bodyText       String                   @db.Text
   recipientCount Int
-  failureCount  Int      @default(0)
-  sentAt        DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  failureCount   Int                      @default(0)
+  sentAt         DateTime                 @default(now())
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
 }
 
 model PasswordResetToken {

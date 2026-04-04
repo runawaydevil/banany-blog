@@ -15,8 +15,24 @@ import { PostMetadataPanel } from "@/components/editor/post-metadata-panel";
 import { PostDeleteButton } from "@/components/post-delete-button";
 import type { SaveUiState } from "@/components/editor/save-state-indicator";
 import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
-import { t } from "@/lib/i18n";
+import { t, tm } from "@/lib/i18n";
 import { toast } from "sonner";
+
+type PostPublishNewsletterUiResult = {
+  status: "sent" | "partial" | "skipped";
+  delivered?: number;
+  failures?: number;
+  reason?:
+    | "mailgun_unconfigured"
+    | "no_active_subscribers"
+    | "already_sent"
+    | "internal_error";
+  campaignId?: string;
+};
+
+type PostMutationResponse = Post & {
+  newsletter?: PostPublishNewsletterUiResult;
+};
 
 function toDatetimeLocalValue(d: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -29,6 +45,39 @@ function hasEditorBody(html: string): boolean {
   return /<(img|video|iframe|figure|hr)\b/i.test(html);
 }
 
+function toastPublishNewsletterResult(
+  locale: string,
+  newsletter: PostPublishNewsletterUiResult | undefined,
+) {
+  if (!newsletter) return;
+
+  if (newsletter.status === "sent") {
+    toast.success(t(locale, "editor.newsletterSent"));
+    return;
+  }
+
+  if (newsletter.status === "partial") {
+    toast.error(
+      tm(locale, "editor.newsletterPartial", {
+        failures: newsletter.failures ?? 0,
+      }),
+    );
+    return;
+  }
+
+  if (newsletter.reason === "mailgun_unconfigured") {
+    toast.message(t(locale, "editor.newsletterSkippedNoMailgun"));
+    return;
+  }
+  if (newsletter.reason === "no_active_subscribers") {
+    toast.message(t(locale, "editor.newsletterSkippedNoSubscribers"));
+    return;
+  }
+  if (newsletter.reason === "internal_error") {
+    toast.error(t(locale, "editor.newsletterFailed"));
+  }
+}
+
 export function PostForm({ initial }: { initial?: Post }) {
   const router = useRouter();
   const locale = useCurrentLocale();
@@ -39,6 +88,9 @@ export function PostForm({ initial }: { initial?: Post }) {
   const [linkUrl, setLinkUrl] = useState(initial?.linkUrl ?? "");
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
   const [published, setPublished] = useState(initial?.published ?? true);
+  const [notifySubscribersOnPublish, setNotifySubscribersOnPublish] = useState(
+    initial?.notifySubscribersOnPublish ?? true,
+  );
   const [pinned, setPinned] = useState(initial?.pinned ?? false);
   const [scheduledAt, setScheduledAt] = useState(
     initial?.scheduledAt
@@ -63,6 +115,7 @@ export function PostForm({ initial }: { initial?: Post }) {
       linkUrl: linkUrl.trim() || null,
       excerpt: finalizeExcerptForStorage(excerpt),
       published,
+      notifySubscribersOnPublish,
       pinned,
       scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
     };
@@ -74,6 +127,7 @@ export function PostForm({ initial }: { initial?: Post }) {
     linkUrl,
     excerpt,
     published,
+    notifySubscribersOnPublish,
     pinned,
     scheduledAt,
   ]);
@@ -127,7 +181,7 @@ export function PostForm({ initial }: { initial?: Post }) {
           const d = await res.json().catch(() => ({}));
           throw new Error(d.error || t(locale, "editor.saveFailed"));
         }
-        const saved = (await res.json()) as Post;
+        const saved = (await res.json()) as PostMutationResponse;
         if (overrides?.published === true) setPublished(true);
         setSavedFingerprint(JSON.stringify(body));
         setSavedAt(new Date());
@@ -144,6 +198,9 @@ export function PostForm({ initial }: { initial?: Post }) {
             );
           } else {
             toast.success(t(locale, "editor.postSaved"));
+          }
+          if (body.published === true) {
+            toastPublishNewsletterResult(locale, saved.newsletter);
           }
         }
         return true;
@@ -183,6 +240,8 @@ export function PostForm({ initial }: { initial?: Post }) {
       scheduledAtMin={toDatetimeLocalValue(new Date())}
       published={published}
       onPublishedChange={setPublished}
+      notifySubscribersOnPublish={notifySubscribersOnPublish}
+      onNotifySubscribersOnPublishChange={setNotifySubscribersOnPublish}
       pinned={pinned}
       onPinnedChange={setPinned}
     />

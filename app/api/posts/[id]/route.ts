@@ -9,6 +9,10 @@ import { PostType } from "@prisma/client";
 import { scheduledAtInPastMessage } from "@/lib/post-scheduled-at";
 import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
 import { reconcileMediaUsage } from "@/lib/media";
+import {
+  evaluatePostPublishNewsletterEligibility,
+  sendAutomaticPostPublishNewsletter,
+} from "@/lib/post-publish-newsletter";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +24,7 @@ const patchSchema = z
     published: z.boolean().optional(),
     publishedAt: z.string().datetime().nullable().optional(),
     scheduledAt: z.string().datetime().nullable().optional(),
+    notifySubscribersOnPublish: z.boolean().optional(),
     tags: z.array(z.string()).optional(),
     excerpt: z.string().max(8000).nullable().optional(),
     linkUrl: z.string().url().nullable().optional().or(z.literal("")),
@@ -115,7 +120,26 @@ export async function PATCH(
     data: data as object,
   });
   await reconcileMediaUsage();
-  return NextResponse.json(post);
+  const site = await prisma.siteSettings.findUnique({
+    where: { id: "singleton" },
+    select: { newsletterAutoPostPublishEnabled: true },
+  });
+  const newsletterEligibility = evaluatePostPublishNewsletterEligibility({
+    siteEnabled: site?.newsletterAutoPostPublishEnabled ?? false,
+    currentPublished: current.published,
+    nextPublished: post.published,
+    type: post.type,
+    notifySubscribersOnPublish: post.notifySubscribersOnPublish,
+  });
+  const newsletter =
+    newsletterEligibility.eligible
+      ? await sendAutomaticPostPublishNewsletter(post)
+      : undefined;
+
+  return NextResponse.json({
+    ...post,
+    newsletter,
+  });
 }
 
 export async function DELETE(

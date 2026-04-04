@@ -27,6 +27,8 @@ export function PostMetadataPanel({
   scheduledAtMin,
   published,
   onPublishedChange,
+  notifySubscribersOnPublish,
+  onNotifySubscribersOnPublishChange,
   pinned,
   onPinnedChange,
 }: {
@@ -41,6 +43,8 @@ export function PostMetadataPanel({
   scheduledAtMin?: string;
   published: boolean;
   onPublishedChange: (v: boolean) => void;
+  notifySubscribersOnPublish: boolean;
+  onNotifySubscribersOnPublishChange: (v: boolean) => void;
   pinned: boolean;
   onPinnedChange: (v: boolean) => void;
 }) {
@@ -112,6 +116,30 @@ export function PostMetadataPanel({
           {t(locale, "editor.published")}
         </Label>
       </div>
+      {type === "POST" ? (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <input
+              id="notify-subscribers-on-publish"
+              type="checkbox"
+              checked={notifySubscribersOnPublish}
+              onChange={(e) =>
+                onNotifySubscribersOnPublishChange(e.target.checked)
+              }
+              className="rounded border-[var(--bb-border)]"
+            />
+            <Label
+              htmlFor="notify-subscribers-on-publish"
+              className="font-normal text-[var(--bb-text)]"
+            >
+              {t(locale, "editor.notifySubscribersOnPublish")}
+            </Label>
+          </div>
+          <p className="text-xs text-[var(--bb-text-muted)]">
+            {t(locale, "editor.notifySubscribersOnPublishHelp")}
+          </p>
+        </div>
+      ) : null}
       <div className="flex items-center gap-2">
         <input
           id="pin-post"

@@ -56,6 +56,7 @@ export async function GET() {
     logoMediaId: site.logoMediaId,
     newsletterEnabledHome: site.newsletterEnabledHome,
     newsletterEnabledPost: site.newsletterEnabledPost,
+    newsletterAutoPostPublishEnabled: site.newsletterAutoPostPublishEnabled,
     seoDescription: site.seoDescription,
   });
 }
@@ -76,6 +77,7 @@ const patchSchema = z
     logoMediaId: z.string().nullable().optional(),
     newsletterEnabledHome: z.boolean().optional(),
     newsletterEnabledPost: z.boolean().optional(),
+    newsletterAutoPostPublishEnabled: z.boolean().optional(),
     seoDescription: z.string().max(500).nullable().optional(),
     homePageSlug: z.string().nullable().optional(),
   })

@@ -139,6 +139,8 @@ export async function POST(req: Request) {
 
   const campaign = await prisma.newsletterCampaign.create({
     data: {
+      kind: "MANUAL",
+      status: failures > 0 ? "PARTIAL" : "SENT",
       subject: parsed.data.subject,
       previewText: parsed.data.previewText ?? null,
       bodyHtml: safeHtml,

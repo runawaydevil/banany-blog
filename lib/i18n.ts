@@ -137,6 +137,9 @@ const messages: Record<Locale, Record<string, string>> = {
     "settings.newsletterSurfaces": "Newsletter surfaces",
     "settings.newsletterHome": "Show signup on homepage",
     "settings.newsletterPost": "Show signup on posts",
+    "settings.newsletterAutoPostPublish": "Automatically email new posts",
+    "settings.newsletterAutoPostPublishHelp":
+      "Uses the current theme and locale, and only fires the first time a post is published.",
     "settings.saveNewsletter": "Save newsletter options",
 
     "dashboard.overview":
@@ -181,7 +184,7 @@ const messages: Record<Locale, Record<string, string>> = {
 
     "newsletterDashboard.title": "Newsletter",
     "newsletterDashboard.subtitle":
-      "Manual sends, subscriber management, and campaign history.",
+      "Manual sends, automatic post alerts, subscriber management, and campaign history.",
     "newsletterDashboard.activeSubscribers": "Active subscribers",
     "newsletterDashboard.subject": "Subject",
     "newsletterDashboard.previewText": "Preview text",
@@ -221,7 +224,12 @@ const messages: Record<Locale, Record<string, string>> = {
       "No subscribers match this filter.",
     "newsletterDashboard.recentCampaigns": "Recent campaigns",
     "newsletterDashboard.recentCampaignsHelp":
-      "Latest manual sends and recipient counts.",
+      "Latest manual and automatic sends with delivery status.",
+    "newsletterDashboard.campaignKindManual": "Manual",
+    "newsletterDashboard.campaignKindPostPublish": "Post publish",
+    "newsletterDashboard.campaignStatusSent": "Sent",
+    "newsletterDashboard.campaignStatusPartial": "Partial",
+    "newsletterDashboard.campaignStatusFailed": "Failed",
     "newsletterDashboard.sentTo": "Sent to {count} subscriber(s){suffix}.",
     "newsletterDashboard.failuresSuffix": ", {count} failure(s)",
     "newsletterDashboard.noCampaigns": "No campaigns sent yet.",
@@ -241,6 +249,9 @@ const messages: Record<Locale, Record<string, string>> = {
     "editor.schedule": "Schedule",
     "editor.published": "Published",
     "editor.pinned": "Pinned",
+    "editor.notifySubscribersOnPublish": "Notify subscribers on publish",
+    "editor.notifySubscribersOnPublishHelp":
+      "Only applies to posts and only on the first publication.",
     "editor.contentPlaceholder": "Start writing…",
     "editor.titlePlaceholder": "Title",
     "editor.pageTitlePlaceholder": "Page title",
@@ -252,6 +263,14 @@ const messages: Record<Locale, Record<string, string>> = {
     "editor.postSaved": "Post saved.",
     "editor.postUpdated": "Post updated.",
     "editor.postPublished": "Post published.",
+    "editor.newsletterSent": "Subscribers were notified.",
+    "editor.newsletterPartial":
+      "Post published. Newsletter sent with {failures} failure(s).",
+    "editor.newsletterSkippedNoMailgun":
+      "Post published. Newsletter was not sent because Mailgun is not configured.",
+    "editor.newsletterSkippedNoSubscribers":
+      "Post published. Newsletter was not sent because there are no active subscribers.",
+    "editor.newsletterFailed": "Post published. Automatic newsletter failed.",
     "editor.pageSaved": "Page saved.",
     "editor.pageUpdated": "Page updated.",
     "editor.pagePublished": "Page published.",
@@ -274,6 +293,9 @@ const messages: Record<Locale, Record<string, string>> = {
     "email.newsletter.receivingBecause":
       "You are receiving this because you subscribed to {siteTitle}.",
     "email.newsletter.unsubscribe": "Unsubscribe instantly",
+    "newsletterPost.subject": "New post: {title}",
+    "newsletterPost.cta": "Read the post",
+    "newsletterPost.untitled": "Untitled post",
     "email.reset.subject": "Reset your Banany Blog password",
     "email.reset.body":
       "Open this link to reset your password (valid 1 hour):",
@@ -414,6 +436,10 @@ const messages: Record<Locale, Record<string, string>> = {
     "settings.newsletterSurfaces": "Superfícies da newsletter",
     "settings.newsletterHome": "Mostrar inscrição na homepage",
     "settings.newsletterPost": "Mostrar inscrição nos posts",
+    "settings.newsletterAutoPostPublish":
+      "Enviar novos posts automaticamente por email",
+    "settings.newsletterAutoPostPublishHelp":
+      "Usa o tema e o idioma atuais do site e só dispara na primeira publicação do post.",
     "settings.saveNewsletter": "Salvar opções da newsletter",
 
     "dashboard.overview":
@@ -459,7 +485,7 @@ const messages: Record<Locale, Record<string, string>> = {
 
     "newsletterDashboard.title": "Newsletter",
     "newsletterDashboard.subtitle":
-      "Envios manuais, gestão de inscritos e histórico de campanhas.",
+      "Envios manuais, alertas automáticos de posts, gestão de inscritos e histórico de campanhas.",
     "newsletterDashboard.activeSubscribers": "Inscritos ativos",
     "newsletterDashboard.subject": "Assunto",
     "newsletterDashboard.previewText": "Texto de prévia",
@@ -500,7 +526,12 @@ const messages: Record<Locale, Record<string, string>> = {
       "Nenhum inscrito corresponde a este filtro.",
     "newsletterDashboard.recentCampaigns": "Campanhas recentes",
     "newsletterDashboard.recentCampaignsHelp":
-      "Últimos envios manuais e contagem de destinatários.",
+      "Últimos envios manuais e automáticos com status de entrega.",
+    "newsletterDashboard.campaignKindManual": "Manual",
+    "newsletterDashboard.campaignKindPostPublish": "Publicação de post",
+    "newsletterDashboard.campaignStatusSent": "Enviada",
+    "newsletterDashboard.campaignStatusPartial": "Parcial",
+    "newsletterDashboard.campaignStatusFailed": "Falhou",
     "newsletterDashboard.sentTo":
       "Enviada para {count} inscrito(s){suffix}.",
     "newsletterDashboard.failuresSuffix": ", {count} falha(s)",
@@ -521,6 +552,10 @@ const messages: Record<Locale, Record<string, string>> = {
     "editor.schedule": "Agendamento",
     "editor.published": "Publicado",
     "editor.pinned": "Fixado",
+    "editor.notifySubscribersOnPublish":
+      "Notificar inscritos na publicação",
+    "editor.notifySubscribersOnPublishHelp":
+      "Só vale para posts e apenas na primeira publicação.",
     "editor.contentPlaceholder": "Comece a escrever…",
     "editor.titlePlaceholder": "Título",
     "editor.pageTitlePlaceholder": "Título da página",
@@ -533,6 +568,15 @@ const messages: Record<Locale, Record<string, string>> = {
     "editor.postSaved": "Post salvo.",
     "editor.postUpdated": "Post atualizado.",
     "editor.postPublished": "Post publicado.",
+    "editor.newsletterSent": "Os inscritos foram notificados.",
+    "editor.newsletterPartial":
+      "Post publicado. Newsletter enviada com {failures} falha(s).",
+    "editor.newsletterSkippedNoMailgun":
+      "Post publicado. A newsletter não foi enviada porque o Mailgun não está configurado.",
+    "editor.newsletterSkippedNoSubscribers":
+      "Post publicado. A newsletter não foi enviada porque não há inscritos ativos.",
+    "editor.newsletterFailed":
+      "Post publicado. A newsletter automática falhou.",
     "editor.pageSaved": "Página salva.",
     "editor.pageUpdated": "Página atualizada.",
     "editor.pagePublished": "Página publicada.",
@@ -555,6 +599,9 @@ const messages: Record<Locale, Record<string, string>> = {
     "email.newsletter.receivingBecause":
       "Você está recebendo isto porque se inscreveu em {siteTitle}.",
     "email.newsletter.unsubscribe": "Cancelar inscrição instantaneamente",
+    "newsletterPost.subject": "Novo post: {title}",
+    "newsletterPost.cta": "Ler post",
+    "newsletterPost.untitled": "Post sem título",
     "email.reset.subject": "Redefina sua senha do Banany Blog",
     "email.reset.body":
       "Abra este link para redefinir sua senha (válido por 1 hora):",
