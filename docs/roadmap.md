@@ -1,85 +1,85 @@
 # Roadmap
 
-Este documento registra a direção futura do **Banany Blog**. Ele existe para orientar evolução de produto e arquitetura, não para prometer datas.
+This document captures the future direction of **Banany Blog**. It exists to guide product and architecture evolution, not to promise dates.
 
-## Como ler este roadmap
+## How to read this roadmap
 
-- As fases indicam **ordem de prioridade**, não calendário.
-- Os itens abaixo são **intenções de evolução**, sujeitos a ajuste conforme aprendizado do produto.
-- Nem todo item desta lista será necessariamente entregue exatamente como está descrito hoje.
+- The phases indicate **priority order**, not a calendar.
+- The items below are **directional goals** and may evolve as the product matures.
+- Not every item will necessarily ship exactly as written here.
 
 ---
 
-## Fase 1 — fortalecer identidade
+## Phase 1 — strengthen identity
 
-Objetivo: aprofundar o caráter pessoal, interoperável e durável do produto, reforçando o Banany Blog como uma ferramenta para a small web e para publicação com identidade própria.
+Goal: deepen the product's personal, interoperable, and durable character, reinforcing Banany Blog as a tool for the small web and for publishing with a clear sense of ownership.
 
 ### Webmention
 
-Adicionar suporte a **Webmention** para permitir que posts recebam e emitam menções entre sites independentes, aproximando o produto dos building blocks centrais da IndieWeb.
+Add **Webmention** support so posts can receive and send mentions across independent sites, bringing the product closer to the core IndieWeb building blocks.
 
-### Blogroll, links e respostas entre sites
+### Blogroll, links, and replies across sites
 
-Expandir as superfícies relacionais do site com:
+Expand the site's relational surfaces with:
 
-- blogroll;
-- páginas ou blocos de links;
-- respostas e conexões mais explícitas entre sites.
+- a blogroll;
+- link pages or link blocks;
+- clearer ways to reply to and connect with other sites.
 
-O foco aqui é tornar o blog menos isolado e mais parte de uma rede viva de sites pessoais.
+The goal here is to make the blog feel less isolated and more like part of a living network of personal sites.
 
-### Melhor export/import
+### Better export/import
 
-Melhorar os mecanismos de entrada e saída de dados para facilitar:
+Improve data import and export so the system becomes better at:
 
-- portabilidade;
-- backup editorial;
-- migração entre instalações;
-- reaproveitamento de conteúdo.
+- portability;
+- editorial backup;
+- migration between installations;
+- content reuse.
 
-### Melhoria contínua do front público e do editor
+### Continuous improvement of the public frontend and editor
 
-Refinar continuamente:
+Keep refining:
 
-- a experiência de leitura do site público;
-- o acabamento visual e tipográfico;
-- a ergonomia do editor;
-- a fluidez do fluxo editorial.
+- the reading experience on the public site;
+- visual and typographic polish;
+- editor ergonomics;
+- the overall flow of writing and publishing.
 
-Essa frente não é uma entrega única, e sim uma linha permanente de evolução.
+This is not a single delivery, but an ongoing line of improvement.
 
 ---
 
-## Fase 2 — abrir o ecossistema
+## Phase 2 — open the ecosystem
 
-Objetivo: tornar o Banany Blog mais interoperável com ferramentas externas, leitores, clientes de publicação e fluxos de distribuição.
+Goal: make Banany Blog more interoperable with external tools, readers, publishing clients, and distribution flows.
 
 ### Micropub
 
-Adicionar suporte a **Micropub** para permitir publicação e automação por clientes compatíveis, abrindo o sistema para integrações externas e fluxos editoriais mais distribuídos.
+Add **Micropub** support so compatible clients can publish into the system, opening the door to external integrations and more distributed editorial workflows.
 
-### Melhores feeds e assinaturas
+### Better feeds and subscriptions
 
-Evoluir os mecanismos de distribuição e consumo com:
+Improve distribution and consumption through:
 
-- feeds mais completos;
-- melhores superfícies de assinatura;
-- melhores caminhos para leitores acompanharem atualizações do site.
+- richer feeds;
+- better subscription surfaces;
+- better ways for readers to follow site updates.
 
 ### WebSub
 
-Avaliar suporte a **WebSub** em um momento posterior, principalmente para distribuição mais rápida de atualizações.
+Consider **WebSub** later on, mainly to support faster distribution of updates.
 
-Isso é visto como um possível passo natural depois de Micropub e da melhoria dos feeds, já que também faz parte do mesmo conjunto de padrões W3C frequentemente associado aos building blocks da IndieWeb.
+This is seen as a natural follow-up after Micropub and feed improvements, since it belongs to the same family of W3C standards often associated with IndieWeb building blocks.
 
 ---
 
-## Princípio orientador
+## Guiding principle
 
-Ao longo dessas fases, o objetivo não é transformar o Banany Blog em uma plataforma genérica e inchada. A direção continua sendo:
+Across these phases, the goal is not to turn Banany Blog into a bloated generic platform. The direction remains:
 
-- publicação pessoal;
-- identidade própria;
-- interoperabilidade aberta;
-- simplicidade operacional;
-- experiência calma para quem escreve e para quem lê.
+- personal publishing;
+- strong site identity;
+- open interoperability;
+- operational simplicity;
+- a calm experience for both writers and readers.
