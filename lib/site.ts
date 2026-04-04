@@ -12,7 +12,7 @@ import {
 const SINGLETON_ID = "singleton";
 
 export async function getSiteSettings(): Promise<SiteSettings | null> {
-  if (!process.env.DATABASE_URL) {
+  if (!process.env.DATABASE_URL || process.env.SKIP_DB_DURING_BUILD === "1") {
     return null;
   }
   return prisma.siteSettings.findUnique({ where: { id: SINGLETON_ID } });

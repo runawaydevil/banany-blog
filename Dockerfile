@@ -18,6 +18,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 # Prisma + Next need placeholders at build time (no DB required for generate)
 ENV DATABASE_URL="postgresql://banany:banany@localhost:5432/banany"
+ENV SKIP_DB_DURING_BUILD=1
 ENV AUTH_SECRET="build-time-placeholder"
 ENV APP_URL="http://localhost:3000"
 ENV NEXTAUTH_URL="http://localhost:3000"

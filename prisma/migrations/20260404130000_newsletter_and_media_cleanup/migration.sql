@@ -10,13 +10,35 @@ ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "unsubscribeToken" TEXT;
 ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "unsubscribedAt" TIMESTAMP(3);
 ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
-UPDATE "Subscriber"
-SET "unsubscribeToken" = COALESCE(
-  "unsubscribeToken",
-  "token",
-  md5("email" || ':' || clock_timestamp()::text)
-)
-WHERE "unsubscribeToken" IS NULL;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'Subscriber'
+      AND column_name = 'token'
+  ) THEN
+    EXECUTE $sql$
+      UPDATE "Subscriber"
+      SET "unsubscribeToken" = COALESCE(
+        "unsubscribeToken",
+        "token",
+        md5("email" || ':' || clock_timestamp()::text)
+      )
+      WHERE "unsubscribeToken" IS NULL
+    $sql$;
+  ELSE
+    EXECUTE $sql$
+      UPDATE "Subscriber"
+      SET "unsubscribeToken" = COALESCE(
+        "unsubscribeToken",
+        md5("email" || ':' || clock_timestamp()::text)
+      )
+      WHERE "unsubscribeToken" IS NULL
+    $sql$;
+  END IF;
+END $$;
 
 ALTER TABLE "Subscriber" ALTER COLUMN "unsubscribeToken" SET NOT NULL;
 
