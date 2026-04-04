@@ -11,12 +11,40 @@ import { Textarea } from "@/components/ui/textarea";
 import { PRESET_LABELS, type ThemePresetId } from "@/lib/themes";
 import type { SemanticTokens } from "@/lib/themes";
 import { DEFAULT_BRANDING_LOGO } from "@/lib/branding";
+import { buildFaviconCacheBust, buildFaviconHref } from "@/lib/favicon";
 
 const PRESETS = Object.keys(PRESET_LABELS) as ThemePresetId[];
+
+type SitePatchResponse = {
+  ok: true;
+  id: string;
+  updatedAt: string;
+  faviconMediaId: string | null;
+  logoMediaId: string | null;
+};
 
 function parseOverrides(raw: unknown): Partial<SemanticTokens> {
   if (!raw || typeof raw !== "object") return {};
   return raw as Partial<SemanticTokens>;
+}
+
+function updateBrowserFavicon(bust: string) {
+  if (typeof document === "undefined") return;
+
+  const href = buildFaviconHref(bust);
+  const rels = ["icon", "shortcut icon", "apple-touch-icon"];
+
+  for (const rel of rels) {
+    let link = document.head.querySelector<HTMLLinkElement>(
+      `link[rel="${rel}"]`,
+    );
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = rel;
+      document.head.appendChild(link);
+    }
+    link.href = href;
+  }
 }
 
 function AssetCard({
@@ -175,6 +203,15 @@ export function AppearanceForm({
       toast.error("Could not attach branding to the site.");
       return;
     }
+    const patchData = (await patchRes.json()) as SitePatchResponse;
+    if (kind === "favicon") {
+      updateBrowserFavicon(
+        buildFaviconCacheBust({
+          updatedAt: patchData.updatedAt,
+          faviconMediaId: patchData.faviconMediaId,
+        }),
+      );
+    }
     toast.success(kind === "favicon" ? "Favicon updated." : "Logo updated.");
     if (kind === "favicon" && faviconInputRef.current) {
       faviconInputRef.current.value = "";
@@ -195,6 +232,15 @@ export function AppearanceForm({
     if (!res.ok) {
       toast.error("Could not remove branding.");
       return;
+    }
+    const patchData = (await res.json()) as SitePatchResponse;
+    if (kind === "favicon") {
+      updateBrowserFavicon(
+        buildFaviconCacheBust({
+          updatedAt: patchData.updatedAt,
+          faviconMediaId: patchData.faviconMediaId,
+        }),
+      );
     }
     toast.success(kind === "favicon" ? "Favicon removed." : "Logo removed.");
     router.refresh();

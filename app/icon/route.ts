@@ -2,6 +2,7 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { getSiteSettings } from "@/lib/site";
 import { readMediaContentById } from "@/lib/media";
+import { normalizeIconAssetToPng } from "@/lib/icon-asset";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -19,9 +20,20 @@ export async function GET() {
   const site = await getSiteSettings();
   const asset = await readMediaContentById(site?.faviconMediaId);
   if (asset) {
-    return new Response(Buffer.from(asset.body), {
+    let body: Uint8Array = Buffer.from(asset.body);
+    let contentType = asset.contentType;
+
+    try {
+      // Serve a PNG favicon regardless of original upload format for browser compatibility.
+      body = await normalizeIconAssetToPng(asset.body);
+      contentType = "image/png";
+    } catch {
+      /* fall back to original bytes if normalization fails */
+    }
+
+    return new Response(Buffer.from(body), {
       headers: {
-        "Content-Type": asset.contentType,
+        "Content-Type": contentType,
         "Cache-Control": "no-store, must-revalidate",
       },
     });

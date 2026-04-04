@@ -11,6 +11,7 @@ import "@fontsource/ibm-plex-serif/400.css";
 import "@fontsource/ibm-plex-mono/400.css";
 import { getSiteSettings } from "@/lib/site";
 import { getEffectivePublicOrigin } from "@/lib/public-origin";
+import { buildFaviconCacheBust, buildFaviconHref } from "@/lib/favicon";
 
 export async function generateMetadata(): Promise<Metadata> {
   let site: Awaited<ReturnType<typeof getSiteSettings>> = null;
@@ -19,11 +20,11 @@ export async function generateMetadata(): Promise<Metadata> {
   } catch {
     /* build/CI sem DATABASE_URL ou DB indisponível */
   }
-  const ts = site?.updatedAt ? site.updatedAt.getTime() : 0;
-  const bust = site?.faviconMediaId
-    ? `${ts}-${site.faviconMediaId.slice(0, 12)}`
-    : String(ts);
-  const q = encodeURIComponent(bust);
+  const bust = buildFaviconCacheBust({
+    updatedAt: site?.updatedAt,
+    faviconMediaId: site?.faviconMediaId,
+  });
+  const faviconHref = buildFaviconHref(bust);
   const title =
     site?.browserTitle?.trim() ||
     site?.siteTitle?.trim() ||
@@ -45,8 +46,9 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     icons: {
-      icon: `/icon?v=${q}`,
-      apple: `/icon?v=${q}`,
+      icon: faviconHref,
+      shortcut: faviconHref,
+      apple: faviconHref,
     },
   };
 }

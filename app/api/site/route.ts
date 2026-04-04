@@ -156,5 +156,11 @@ export async function PATCH(req: Request) {
   revalidatePath("/icon");
   revalidatePath("/login");
 
-  return NextResponse.json({ ok: true, id: site.id });
+  return NextResponse.json({
+    ok: true,
+    id: site.id,
+    updatedAt: site.updatedAt.toISOString(),
+    faviconMediaId: site.faviconMediaId,
+    logoMediaId: site.logoMediaId,
+  });
 }
