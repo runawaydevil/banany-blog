@@ -5,7 +5,7 @@ import { slugify } from "@/lib/utils";
 import { slugBaseFromPostTitle } from "@/lib/slug-base";
 import { nanoid } from "nanoid";
 import { z } from "zod";
-import { PostType } from "@prisma/client";
+import { PostContentFormat, PostType } from "@prisma/client";
 import { scheduledAtInPastMessage } from "@/lib/post-scheduled-at";
 import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
 import { reconcileMediaUsage } from "@/lib/media";
@@ -19,6 +19,7 @@ export const dynamic = "force-dynamic";
 const createSchema = z.object({
   title: z.string().max(500).nullable().optional(),
   content: z.string(),
+  contentFormat: z.nativeEnum(PostContentFormat).optional(),
   type: z.nativeEnum(PostType).optional(),
   published: z.boolean().optional(),
   publishedAt: z.string().datetime().nullable().optional(),
@@ -90,6 +91,7 @@ export async function POST(req: Request) {
       title: body.title ?? null,
       slug,
       content: body.content,
+      contentFormat: body.contentFormat ?? PostContentFormat.RICH_TEXT,
       type: body.type ?? PostType.POST,
       published,
       publishedAt,

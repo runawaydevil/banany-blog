@@ -7,8 +7,9 @@ import { isValidMediaObjectKey } from "@/lib/upload-policy";
 
 type MediaRecord = Pick<Media, "id" | "key" | "url" | "mimeType">;
 
-const DIRECT_KEY_RE = /\b(?:uploads|branding)\/[A-Za-z0-9_-]{8,64}\.[a-z0-9]{2,8}\b/gi;
-const RAW_ROUTE_KEY_RE = /\/api\/media\/raw\?[^"' >]*?key=([^"'& >]+)/gi;
+const DIRECT_KEY_RE =
+  /\b(?:uploads|branding)\/[A-Za-z0-9_-]{8,64}\.[a-z0-9]{2,8}\b/gi;
+const RAW_ROUTE_KEY_RE = /\/api\/media\/raw\?[^"' >)]*?key=([^"'& >)]+)/gi;
 
 export async function getMediaById(
   id: string | null | undefined,
@@ -52,15 +53,15 @@ export async function readMediaContentById(
   };
 }
 
-export function extractReferencedMediaKeysFromHtml(html: string): string[] {
+export function extractReferencedMediaKeysFromContent(content: string): string[] {
   const keys = new Set<string>();
 
-  for (const match of html.matchAll(DIRECT_KEY_RE)) {
+  for (const match of content.matchAll(DIRECT_KEY_RE)) {
     const key = match[0];
     if (isValidMediaObjectKey(key)) keys.add(key);
   }
 
-  for (const match of html.matchAll(RAW_ROUTE_KEY_RE)) {
+  for (const match of content.matchAll(RAW_ROUTE_KEY_RE)) {
     const rawKey = match[1];
     if (!rawKey) continue;
     try {
@@ -73,6 +74,8 @@ export function extractReferencedMediaKeysFromHtml(html: string): string[] {
 
   return [...keys];
 }
+
+export const extractReferencedMediaKeysFromHtml = extractReferencedMediaKeysFromContent;
 
 export async function reconcileMediaUsage(): Promise<{
   deleted: number;
@@ -93,13 +96,13 @@ export async function reconcileMediaUsage(): Promise<{
   const referencedKeys = new Set<string>();
 
   for (const post of posts) {
-    for (const key of extractReferencedMediaKeysFromHtml(post.content)) {
+    for (const key of extractReferencedMediaKeysFromContent(post.content)) {
       referencedKeys.add(key);
     }
   }
 
   for (const page of pages) {
-    for (const key of extractReferencedMediaKeysFromHtml(page.content)) {
+    for (const key of extractReferencedMediaKeysFromContent(page.content)) {
       referencedKeys.add(key);
     }
   }

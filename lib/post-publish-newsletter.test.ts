@@ -30,7 +30,7 @@ import {
 beforeEach(() => {
   vi.clearAllMocks();
   for (const key of Object.keys(prisma)) {
-    delete (prisma as Record<string, unknown>)[key];
+    delete (prisma as unknown as Record<string, unknown>)[key];
   }
 });
 
@@ -126,6 +126,16 @@ describe("derivePostPublishTeaser", () => {
       }),
     ).toBe("Hello world");
   });
+
+  it("derives a teaser from markdown when excerpt is missing", () => {
+    expect(
+      derivePostPublishTeaser({
+        excerpt: null,
+        content: "# Launch\n\n**Bold** move with ![Cover](/uploads/cover.webp)",
+        contentFormat: "MARKDOWN",
+      }),
+    ).toBe("Launch Bold move with Cover");
+  });
 });
 
 describe("buildPostPublishNewsletterContent", () => {
@@ -185,13 +195,14 @@ describe("buildPostPublishNewsletterContent", () => {
     const result = buildPostPublishNewsletterContent({
       title: null,
       excerpt: null,
-      content: "<p>  Um resumo direto do post. </p>",
+      content: "# Sem título\n\nUm resumo direto do post.",
+      contentFormat: "MARKDOWN",
       locale: "pt",
       postUrl: "https://example.com/posts/novo",
     });
 
     expect(result.subject).toBe("Novo post: Post sem t\u00edtulo");
-    expect(result.previewText).toBe("Um resumo direto do post.");
+    expect(result.previewText).toBe("Sem título Um resumo direto do post.");
     expect(result.bodyHtml).toContain("Ler post");
     expect(result.bodyText).toContain(
       "Ler post: https://example.com/posts/novo",
@@ -214,7 +225,7 @@ describe("buildPostPublishNewsletterContent", () => {
       locale: "pt",
       previewText: content.previewText,
       siteTitle: "Banany Blog",
-      tokens: mergeTokens("vaporwave-neon"),
+      tokens: mergeTokens("vaporwave-neon", undefined),
       unsubscribeUrl: "https://example.com/unsubscribe?token=abc",
     });
 

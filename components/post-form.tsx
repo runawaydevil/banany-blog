@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { Post, PostType } from "@prisma/client";
 import { useCurrentLocale } from "@/components/locale-provider";
+import { PostMarkdownEditor } from "@/components/post-markdown-editor";
 import { TiptapEditor } from "@/components/tiptap-editor";
 import { EditorShell } from "@/components/editor/editor-shell";
 import {
@@ -14,9 +15,15 @@ import {
 import { PostMetadataPanel } from "@/components/editor/post-metadata-panel";
 import { PostDeleteButton } from "@/components/post-delete-button";
 import type { SaveUiState } from "@/components/editor/save-state-indicator";
-import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
+import {
+  finalizeExcerptForStorage,
+  hasRenderablePostContent,
+} from "@/lib/excerpt-plain";
 import { t, tm } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+
+type PostContentFormatValue = "RICH_TEXT" | "MARKDOWN";
 
 type PostPublishNewsletterUiResult = {
   status: "sent" | "partial" | "skipped";
@@ -37,12 +44,6 @@ type PostMutationResponse = Post & {
 function toDatetimeLocalValue(d: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function hasEditorBody(html: string): boolean {
-  const text = html.replace(/<[^>]+>/g, "").trim();
-  if (text.length > 0) return true;
-  return /<(img|video|iframe|figure|hr)\b/i.test(html);
 }
 
 function toastPublishNewsletterResult(
@@ -81,8 +82,14 @@ function toastPublishNewsletterResult(
 export function PostForm({ initial }: { initial?: Post }) {
   const router = useRouter();
   const locale = useCurrentLocale();
+  const initialContentFormat: PostContentFormatValue =
+    initial?.contentFormat === "MARKDOWN" ? "MARKDOWN" : "RICH_TEXT";
   const [title, setTitle] = useState(initial?.title ?? "");
-  const [content, setContent] = useState(initial?.content ?? "<p></p>");
+  const [contentFormat, setContentFormat] =
+    useState<PostContentFormatValue>(initialContentFormat);
+  const [content, setContent] = useState(
+    initial?.content ?? (initialContentFormat === "MARKDOWN" ? "" : "<p></p>"),
+  );
   const [type, setType] = useState<PostType>(initial?.type ?? "POST");
   const [tags, setTags] = useState((initial?.tags ?? []).join(", "));
   const [linkUrl, setLinkUrl] = useState(initial?.linkUrl ?? "");
@@ -110,6 +117,7 @@ export function PostForm({ initial }: { initial?: Post }) {
     return {
       title: title.trim() || null,
       content,
+      contentFormat,
       type,
       tags: tagList,
       linkUrl: linkUrl.trim() || null,
@@ -122,6 +130,7 @@ export function PostForm({ initial }: { initial?: Post }) {
   }, [
     title,
     content,
+    contentFormat,
     type,
     tags,
     linkUrl,
@@ -145,6 +154,7 @@ export function PostForm({ initial }: { initial?: Post }) {
   }, [initial?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- reset baseline when switching post
 
   const isDirty = fingerprint !== savedFingerprint;
+  const bodyIsEmpty = !hasRenderablePostContent(content, contentFormat);
 
   const saveUiState: SaveUiState = saving
     ? "saving"
@@ -159,7 +169,7 @@ export function PostForm({ initial }: { initial?: Post }) {
       silent = false,
       overrides?: Partial<ReturnType<typeof payload>>,
     ): Promise<boolean> => {
-      if (!initial && !hasEditorBody(content)) {
+      if (!initial && bodyIsEmpty) {
         if (!silent) {
           setErr(t(locale, "editor.addTextBeforeSaving"));
           toast.error(t(locale, "editor.addTextBeforeSaving"));
@@ -216,7 +226,7 @@ export function PostForm({ initial }: { initial?: Post }) {
         if (!silent) setSaving(false);
       }
     },
-    [initial, payload, router, content, locale],
+    [bodyIsEmpty, initial, payload, router, locale],
   );
 
   useEffect(() => {
@@ -318,7 +328,57 @@ export function PostForm({ initial }: { initial?: Post }) {
         rows={2}
         className="mb-8 w-full resize-y border-none bg-transparent px-0 py-1 text-[0.95rem] leading-relaxed text-[var(--bb-text-muted)] shadow-none placeholder:text-[var(--bb-text-muted)]/45 focus:outline-none focus:ring-0"
       />
-      <TiptapEditor content={content} onChange={setContent} />
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--bb-text-muted)]">
+          {t(locale, "editor.formatLabel")}
+        </span>
+        <div className="inline-flex rounded-full border border-[var(--bb-border)] bg-[var(--bb-surface)] p-1">
+          {([
+            ["RICH_TEXT", t(locale, "editor.formatRichText")],
+            ["MARKDOWN", t(locale, "editor.formatMarkdown")],
+          ] as const).map(([value, label]) => {
+            const active = contentFormat === value;
+            const disabled = !bodyIsEmpty && !active;
+
+            return (
+              <Button
+                key={value}
+                type="button"
+                size="sm"
+                variant={active ? "default" : "ghost"}
+                className="rounded-full px-3"
+                disabled={disabled}
+                onClick={() => {
+                  if (!bodyIsEmpty || contentFormat === value) return;
+                  setContentFormat(value);
+                  setContent(value === "MARKDOWN" ? "" : "<p></p>");
+                }}
+              >
+                {label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+      {!bodyIsEmpty ? (
+        <p className="mb-6 text-xs text-[var(--bb-text-muted)]">
+          {t(locale, "editor.formatSwitchLocked")}
+        </p>
+      ) : null}
+      {contentFormat === "MARKDOWN" ? (
+        <PostMarkdownEditor
+          content={content}
+          onChange={setContent}
+          placeholder={t(locale, "editor.contentPlaceholder")}
+        />
+      ) : (
+        <TiptapEditor
+          content={content}
+          onChange={setContent}
+          showFloatingMenu={false}
+          showSlashMenu
+        />
+      )}
     </>
   );
 

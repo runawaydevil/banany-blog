@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { extractReferencedMediaKeysFromHtml } from "@/lib/media";
+import {
+  extractReferencedMediaKeysFromContent,
+  extractReferencedMediaKeysFromHtml,
+} from "@/lib/media";
 
 describe("extractReferencedMediaKeysFromHtml", () => {
   it("extracts raw route keys and direct public keys", () => {
@@ -16,6 +19,22 @@ describe("extractReferencedMediaKeysFromHtml", () => {
         "uploads/abc12345defg.webp",
         "branding/logo_12345678.png",
         "uploads/xyz98765_abcd.webp",
+      ]),
+    );
+  });
+
+  it("extracts markdown image references and raw route keys", () => {
+    const keys = extractReferencedMediaKeysFromContent(
+      [
+        "![Hero](/api/media/raw?key=uploads%2Fabc12345defg.webp)",
+        "![Logo](https://cdn.example.com/branding/logo_12345678.png)",
+      ].join("\n\n"),
+    );
+
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        "uploads/abc12345defg.webp",
+        "branding/logo_12345678.png",
       ]),
     );
   });

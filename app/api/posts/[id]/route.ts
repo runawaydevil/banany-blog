@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 import { slugify } from "@/lib/utils";
 import { slugBaseFromPostTitle } from "@/lib/slug-base";
 import { z } from "zod";
-import { PostType } from "@prisma/client";
+import { PostContentFormat, PostType } from "@prisma/client";
 import { scheduledAtInPastMessage } from "@/lib/post-scheduled-at";
 import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
 import { reconcileMediaUsage } from "@/lib/media";
@@ -20,6 +20,7 @@ const patchSchema = z
   .object({
     title: z.string().max(500).nullable().optional(),
     content: z.string().optional(),
+    contentFormat: z.nativeEnum(PostContentFormat).optional(),
     type: z.nativeEnum(PostType).optional(),
     published: z.boolean().optional(),
     publishedAt: z.string().datetime().nullable().optional(),

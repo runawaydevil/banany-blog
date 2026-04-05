@@ -19,6 +19,15 @@
   --bb-success: #4a7c59;
   --bb-warning: #b8860b;
   --bb-danger: #a94442;
+  --bb-code-bg: color-mix(in srgb, var(--bb-surface-soft) 88%, var(--bb-bg));
+  --bb-code-border: color-mix(in srgb, var(--bb-border) 72%, var(--bb-accent) 28%);
+  --bb-code-fg: var(--bb-text);
+  --bb-code-comment: color-mix(in srgb, var(--bb-text-muted) 88%, var(--bb-surface) 12%);
+  --bb-code-keyword: color-mix(in srgb, var(--bb-accent) 64%, var(--bb-heading) 36%);
+  --bb-code-string: color-mix(in srgb, var(--bb-link) 74%, var(--bb-text) 26%);
+  --bb-code-number: color-mix(in srgb, var(--bb-warning) 76%, var(--bb-text) 24%);
+  --bb-code-title: color-mix(in srgb, var(--bb-heading) 76%, var(--bb-link) 24%);
+  --bb-code-operator: color-mix(in srgb, var(--bb-accent) 44%, var(--bb-text) 56%);
   --bb-font-body: "Newsreader", Georgia, serif;
   --bb-font-heading: "Newsreader", Georgia, serif;
   --bb-font-mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -60,20 +69,223 @@ a:hover {
   margin-inline: auto;
 }
 
+.bb-content > :first-child {
+  margin-top: 0;
+}
+
+.bb-content > :last-child {
+  margin-bottom: 0;
+}
+
+.bb-content h1,
+.bb-content h2,
+.bb-content h3,
+.bb-content h4 {
+  font-family: var(--bb-font-heading);
+  color: var(--bb-heading);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.bb-content h1 {
+  margin: 2rem 0 0.85rem;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+}
+
+.bb-content h2 {
+  margin: 1.85rem 0 0.7rem;
+  font-size: clamp(1.45rem, 2.2vw, 1.85rem);
+}
+
+.bb-content h3 {
+  margin: 1.5rem 0 0.6rem;
+  font-size: clamp(1.2rem, 1.8vw, 1.45rem);
+}
+
+.bb-content h4 {
+  margin: 1.25rem 0 0.55rem;
+  font-size: 1.05rem;
+}
+
+.bb-content p,
+.bb-content ul,
+.bb-content ol,
+.bb-content blockquote,
+.bb-content pre,
+.bb-content table {
+  margin: 0.95rem 0;
+}
+
+.bb-content ul,
+.bb-content ol {
+  padding-left: 1.35rem;
+}
+
+.bb-content li {
+  margin: 0.35rem 0;
+}
+
+.bb-content ul.contains-task-list {
+  padding-left: 0;
+  list-style: none;
+}
+
+.bb-content li.task-list-item {
+  margin-left: 0;
+}
+
+.bb-content input[type="checkbox"] {
+  margin-right: 0.55rem;
+  accent-color: var(--bb-accent);
+}
+
+.bb-content a {
+  color: var(--bb-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bb-content a:hover {
+  color: var(--bb-link-hover);
+}
+
+.bb-inline-code {
+  border: 1px solid var(--bb-code-border);
+  background: color-mix(in srgb, var(--bb-code-bg) 92%, transparent);
+  border-radius: 0.45rem;
+  padding: 0.12rem 0.38rem;
+  font-family: var(--bb-font-mono);
+  font-size: 0.92em;
+}
+
 .prose-bb pre {
-  background: var(--bb-surface-soft);
-  border: 1px solid var(--bb-border);
-  border-radius: 0.375rem;
-  padding: 0.75rem 1rem;
+  background: var(--bb-code-bg);
+  border: 1px solid var(--bb-code-border);
+  border-radius: 0.75rem;
+  padding: 0.95rem 1.05rem;
   overflow-x: auto;
   font-family: var(--bb-font-mono);
   font-size: 0.875rem;
+}
+
+.bb-code-block,
+.bb-content pre,
+.bb-editor-code-block {
+  background: var(--bb-code-bg);
+  border: 1px solid var(--bb-code-border);
+  border-radius: 0.75rem;
+  color: var(--bb-code-fg);
+  overflow-x: auto;
+  padding: 0.95rem 1.05rem;
+}
+
+.bb-code-block code,
+.bb-content pre code,
+.bb-editor-code-block code {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-family: var(--bb-font-mono);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  padding: 0;
+}
+
+.hljs {
+  color: var(--bb-code-fg);
+  background: transparent;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--bb-code-comment);
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-type,
+.hljs-built_in {
+  color: var(--bb-code-keyword);
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-attribute,
+.hljs-addition {
+  color: var(--bb-code-string);
+}
+
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-variable,
+.hljs-template-variable {
+  color: var(--bb-code-number);
+}
+
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.function_,
+.hljs-section {
+  color: var(--bb-code-title);
+}
+
+.hljs-operator,
+.hljs-punctuation,
+.hljs-subst {
+  color: var(--bb-code-operator);
 }
 
 .prose-bb blockquote {
   border-left: 2px solid var(--bb-border);
   padding-left: 1rem;
   color: var(--bb-text-muted);
+}
+
+.bb-content blockquote {
+  border-left: 3px solid color-mix(in srgb, var(--bb-accent) 55%, var(--bb-border));
+  padding-left: 1.1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: var(--bb-text-muted);
+}
+
+.bb-content hr {
+  margin: 1.5rem 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--bb-border) 86%, transparent);
+}
+
+.bb-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.25rem 0;
+  border-radius: 0.95rem;
+}
+
+.bb-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.96rem;
+}
+
+.bb-content thead {
+  background: color-mix(in srgb, var(--bb-surface-soft) 92%, transparent);
+}
+
+.bb-content th,
+.bb-content td {
+  border: 1px solid color-mix(in srgb, var(--bb-border) 85%, transparent);
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.bb-content th {
+  color: var(--bb-heading);
+  font-weight: 600;
 }
 
 /* Writing canvas (Tiptap) */
@@ -113,13 +325,13 @@ a:hover {
 }
 
 .bb-editor-code-block {
-  background: var(--bb-surface-soft);
-  border: 1px solid var(--bb-border);
-  border-radius: 0.375rem;
-  padding: 0.85rem 1rem;
+  background: var(--bb-code-bg);
+  border: 1px solid var(--bb-code-border);
+  border-radius: 0.75rem;
+  padding: 0.95rem 1.05rem;
   font-family: var(--bb-font-mono);
   font-size: 0.875rem;
-  line-height: 1.55;
+  line-height: 1.65;
 }
 
 .bb-editor-root .ProseMirror-selectednode.bb-editor-image,

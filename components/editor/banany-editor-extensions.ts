@@ -1,8 +1,10 @@
 import { Extension, type AnyExtension } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
+import { lowlight } from "@/lib/code-languages";
 
 /** Cmd/Ctrl+K — prompt URL, matches common editor UX. */
 function createLinkKeyboard(linkPromptLabel: string) {
@@ -43,11 +45,16 @@ export function getBananyEditorExtensions(
   const extensions: AnyExtension[] = [
     StarterKit.configure({
       heading: { levels: [2, 3] },
+      codeBlock: false,
       blockquote: {
         HTMLAttributes: { class: "bb-editor-blockquote" },
       },
-      codeBlock: {
-        HTMLAttributes: { class: "bb-editor-code-block" },
+    }),
+    CodeBlockLowlight.configure({
+      lowlight,
+      languageClassPrefix: "language-",
+      HTMLAttributes: {
+        class: "bb-editor-code-block hljs",
       },
     }),
     Link.configure({

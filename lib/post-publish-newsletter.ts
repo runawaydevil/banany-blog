@@ -1,10 +1,13 @@
-import { Prisma, type PostType } from "@prisma/client";
+import { Prisma, type PostContentFormat, type PostType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendMailgunEmail } from "@/lib/mailgun";
 import { getMailgunConfigFromEnv } from "@/lib/mailgun-env";
 import { absolutizeMediaUrl, mediaUrlById } from "@/lib/media";
 import { fontStackForKey } from "@/lib/fonts-registry";
-import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
+import {
+  finalizeContentExcerptForStorage,
+  finalizeExcerptForStorage,
+} from "@/lib/excerpt-plain";
 import { normalizeLocale, t, tm } from "@/lib/i18n";
 import { renderNewsletterEmail, sanitizeNewsletterHtml } from "@/lib/newsletter";
 import { getEffectivePublicOrigin } from "@/lib/public-origin";
@@ -55,10 +58,11 @@ function escapeHtml(value: string): string {
 export function derivePostPublishTeaser(input: {
   excerpt: string | null | undefined;
   content: string;
+  contentFormat?: PostContentFormat | string | null | undefined;
 }): string | null {
   return (
     finalizeExcerptForStorage(input.excerpt) ??
-    finalizeExcerptForStorage(input.content)
+    finalizeContentExcerptForStorage(input.content, input.contentFormat)
   );
 }
 
@@ -66,6 +70,7 @@ export function buildPostPublishNewsletterContent(input: {
   title: string | null | undefined;
   excerpt: string | null | undefined;
   content: string;
+  contentFormat?: PostContentFormat | string | null | undefined;
   locale: string | null | undefined;
   postUrl: string;
 }): {
@@ -75,7 +80,11 @@ export function buildPostPublishNewsletterContent(input: {
   bodyText: string;
   teaser: string | null;
 } {
-  const teaser = derivePostPublishTeaser(input);
+  const teaser = derivePostPublishTeaser({
+    excerpt: input.excerpt,
+    content: input.content,
+    contentFormat: input.contentFormat,
+  });
   const title =
     finalizeExcerptForStorage(input.title)?.trim() ||
     t(input.locale, "newsletterPost.untitled");
@@ -135,6 +144,7 @@ export async function sendAutomaticPostPublishNewsletter(input: {
   title: string | null;
   slug: string;
   content: string;
+  contentFormat?: PostContentFormat | string | null | undefined;
   excerpt: string | null;
 }): Promise<AutomaticPostNewsletterResult> {
   let campaignId: string | undefined;
@@ -154,6 +164,7 @@ export async function sendAutomaticPostPublishNewsletter(input: {
       title: input.title,
       excerpt: input.excerpt,
       content: input.content,
+      contentFormat: input.contentFormat,
       locale,
       postUrl,
     });

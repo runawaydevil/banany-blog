@@ -53,6 +53,7 @@ export function EditorFloatingMenu({
       editor={editor}
       className="flex items-center gap-0.5 rounded-lg border border-[var(--bb-border)]/70 bg-[var(--bb-surface-elevated)]/95 p-1 shadow-md backdrop-blur-sm"
       shouldShow={({ editor: ed, state }) => {
+        if (!ed.isFocused || !state.selection.empty) return false;
         const { $from } = state.selection;
         const type = $from.parent.type.name;
         if (type !== "paragraph") return false;

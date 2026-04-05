@@ -4,16 +4,12 @@ import { getSiteSettings } from "@/lib/site";
 import { NewsletterInline } from "@/components/newsletter-inline";
 import { toValidDate, toISOStringSafe } from "@/lib/dates";
 import { sanitizePostHtml } from "@/lib/sanitize-html";
+import { PostContent } from "@/components/post-content";
 import { intlLocale, t, tm } from "@/lib/i18n";
 import type { Post } from "@prisma/client";
+import { hasRenderablePostContent } from "@/lib/excerpt-plain";
 
 const PAGE_SIZE = 20;
-
-function hasRenderableBody(html: string): boolean {
-  const text = html.replace(/<[^>]+>/g, "").trim();
-  if (text.length > 0) return true;
-  return /<(img|video|iframe|figure|hr)\b/i.test(html);
-}
 
 export default async function HomePage({
   searchParams,
@@ -173,8 +169,7 @@ function PostRow({
           : { year: "numeric", month: "short", day: "numeric" },
       )
     : null;
-  const rawHtml = sanitizePostHtml(post.content);
-  const showBody = hasRenderableBody(post.content);
+  const showBody = hasRenderablePostContent(post.content, post.contentFormat);
   const postTypeKey = `postType.${post.type.toLowerCase()}`;
 
   return (
@@ -213,9 +208,10 @@ function PostRow({
         </a>
       ) : null}
       {showBody ? (
-        <div
-          className="post-body mt-4 space-y-3 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: rawHtml }}
+        <PostContent
+          content={post.content}
+          contentFormat={post.contentFormat}
+          className="post-body mt-4"
         />
       ) : null}
     </article>

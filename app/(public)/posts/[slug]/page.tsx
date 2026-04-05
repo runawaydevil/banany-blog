@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { sanitizePostHtml } from "@/lib/sanitize-html";
 import { toISOStringSafe, toValidDate } from "@/lib/dates";
 import { getSiteSettings } from "@/lib/site";
 import { getEffectivePublicOrigin } from "@/lib/public-origin";
 import { NewsletterInline } from "@/components/newsletter-inline";
+import { PostContent } from "@/components/post-content";
+import { finalizeContentExcerptForStorage } from "@/lib/excerpt-plain";
 import { intlLocale, t } from "@/lib/i18n";
 
 export async function generateMetadata({
@@ -27,7 +28,10 @@ export async function generateMetadata({
   const pageTitle = post.title?.trim() || t(site?.locale, "post.note");
   return {
     title: pageTitle,
-    description: post.excerpt?.trim() || undefined,
+    description:
+      post.excerpt?.trim() ||
+      finalizeContentExcerptForStorage(post.content, post.contentFormat) ||
+      undefined,
     openGraph: {
       title: pageTitle,
       url: `${base}/posts/${slug}`,
@@ -51,7 +55,6 @@ export default async function PostPage({
   const date = toValidDate(post.publishedAt) ?? toValidDate(post.createdAt);
   const dateIso =
     toISOStringSafe(post.publishedAt) ?? toISOStringSafe(post.createdAt);
-  const html = sanitizePostHtml(post.content);
 
   return (
     <article className="prose-bb">
@@ -100,9 +103,10 @@ export default async function PostPage({
           {post.linkUrl}
         </a>
       ) : null}
-      <div
-        className="post-body mt-8 space-y-4 leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: html }}
+      <PostContent
+        content={post.content}
+        contentFormat={post.contentFormat}
+        className="post-body mt-8"
       />
       {site?.newsletterEnabledPost ? (
         <div className="mt-12 border-t border-[var(--bb-border)] pt-6">

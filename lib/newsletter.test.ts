@@ -49,7 +49,7 @@ describe("renderNewsletterEmail", () => {
       logoUrl: "https://example.com/logo.png",
       previewText: "Fresh note",
       siteTitle: "Banany Blog",
-      tokens: mergeTokens("paper"),
+      tokens: mergeTokens("paper", undefined),
       unsubscribeUrl: "https://example.com/unsubscribe?token=abc",
     });
 
@@ -71,7 +71,7 @@ describe("renderNewsletterEmail", () => {
       locale: "pt",
       previewText: "Nova nota",
       siteTitle: "Banany Blog",
-      tokens: mergeTokens("vaporwave-neon"),
+      tokens: mergeTokens("vaporwave-neon", undefined),
       unsubscribeUrl: "https://example.com/unsubscribe?token=abc",
     });
 

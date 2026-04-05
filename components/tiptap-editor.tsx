@@ -4,7 +4,10 @@ import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import { useCallback } from "react";
 import { getBananyEditorExtensions } from "@/components/editor/banany-editor-extensions";
 import { EditorBubbleMenu } from "@/components/editor/editor-bubble-menu";
+import { EditorCodeBlockMenu } from "@/components/editor/editor-code-block-menu";
 import { EditorFloatingMenu } from "@/components/editor/editor-floating-menu";
+import { EditorSlashMenu } from "@/components/editor/editor-slash-menu";
+import { pickAndUploadImage } from "@/components/editor/upload-image";
 import { useCurrentLocale } from "@/components/locale-provider";
 import { t } from "@/lib/i18n";
 
@@ -13,30 +16,25 @@ export function TiptapEditor({
   onChange,
   placeholder,
   allowImages = true,
+  showFloatingMenu = true,
+  showSlashMenu = false,
+  showCodeBlockMenu = true,
 }: {
   content: string;
   onChange: (html: string) => void;
   placeholder?: string;
   allowImages?: boolean;
+  showFloatingMenu?: boolean;
+  showSlashMenu?: boolean;
+  showCodeBlockMenu?: boolean;
 }) {
   const locale = useCurrentLocale();
 
-  const insertImage = useCallback((ed: Editor) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      if (!file) return;
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("prefix", "uploads");
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!res.ok) return;
-      const data = (await res.json()) as { url: string };
-      ed.chain().focus().setImage({ src: data.url }).run();
-    };
-    input.click();
+  const insertImage = useCallback(async (ed: Editor) => {
+    const uploaded = await pickAndUploadImage();
+    if (!uploaded) return;
+
+    ed.chain().focus().setImage({ src: uploaded.url }).run();
   }, []);
 
   const editor = useEditor({
@@ -73,11 +71,21 @@ export function TiptapEditor({
   return (
     <div className="relative">
       <EditorBubbleMenu editor={editor} />
-      <EditorFloatingMenu
-        editor={editor}
-        onInsertImage={onInsertImage}
-        allowImages={allowImages}
-      />
+      {showCodeBlockMenu ? <EditorCodeBlockMenu editor={editor} /> : null}
+      {showFloatingMenu ? (
+        <EditorFloatingMenu
+          editor={editor}
+          onInsertImage={onInsertImage}
+          allowImages={allowImages}
+        />
+      ) : null}
+      {showSlashMenu ? (
+        <EditorSlashMenu
+          editor={editor}
+          onInsertImage={onInsertImage}
+          allowImages={allowImages}
+        />
+      ) : null}
       <EditorContent editor={editor} />
     </div>
   );

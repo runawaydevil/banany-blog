@@ -66,11 +66,17 @@ enum PostType {
   REPLY
 }
 
+enum PostContentFormat {
+  RICH_TEXT
+  MARKDOWN
+}
+
 model Post {
   id          String    @id @default(cuid())
   type        PostType  @default(POST)
   title       String?
   slug        String    @unique
+  contentFormat PostContentFormat @default(RICH_TEXT)
   content     String    @db.Text
   excerpt     String?   @db.VarChar(300)
   published   Boolean   @default(false)

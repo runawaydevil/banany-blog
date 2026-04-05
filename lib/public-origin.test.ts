@@ -59,9 +59,9 @@ describe("isLocalhostOrigin", () => {
 
 describe("getEffectivePublicOrigin", () => {
   afterEach(() => {
-    delete process.env.APP_URL;
-    delete process.env.NODE_ENV;
-    delete process.env.NEXT_PUBLIC_APP_URL;
+    Reflect.deleteProperty(process.env, "APP_URL");
+    Reflect.deleteProperty(process.env, "NODE_ENV");
+    Reflect.deleteProperty(process.env, "NEXT_PUBLIC_APP_URL");
   });
 
   it("prefers trusted env over site", () => {
