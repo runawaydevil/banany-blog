@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   getSiteSettings,
   resolveThemeForSite,
@@ -40,12 +41,9 @@ export default async function NotFound() {
         <p className="mt-3 max-w-md text-center text-sm text-[var(--bb-text-muted)]">
           The page you are looking for does not exist or may have been moved.
         </p>
-        <Link
-          href="/"
-          className="mt-8 inline-flex h-9 items-center justify-center rounded-md bg-[var(--bb-accent)] px-4 text-sm font-medium text-[var(--bb-accent-fg)] transition-opacity hover:opacity-90"
-        >
-          Back to home
-        </Link>
+        <Button asChild className="mt-8">
+          <Link href="/">Back to home</Link>
+        </Button>
       </div>
     </>
   );

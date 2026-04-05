@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
 import { PostDeleteButton } from "@/components/post-delete-button";
@@ -20,12 +21,9 @@ export default async function PostsAdminPage() {
         <h1 className="font-[family-name:var(--bb-font-heading)] text-2xl text-[var(--bb-heading)]">
           {t(locale, "nav.posts")}
         </h1>
-        <Link
-          href="/dashboard/posts/new"
-          className="inline-flex h-9 items-center justify-center rounded-md bg-[var(--bb-accent)] px-4 text-sm font-medium text-[var(--bb-accent-fg)] hover:opacity-90"
-        >
-          {t(locale, "posts.new")}
-        </Link>
+        <Button asChild>
+          <Link href="/dashboard/posts/new">{t(locale, "posts.new")}</Link>
+        </Button>
       </div>
       <ul className="divide-y divide-[var(--bb-border)] rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)]">
         {posts.map((post) => (

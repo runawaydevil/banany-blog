@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
 import { t } from "@/lib/i18n";
@@ -17,12 +18,9 @@ export default async function PagesAdminPage() {
         <h1 className="font-[family-name:var(--bb-font-heading)] text-2xl text-[var(--bb-heading)]">
           {t(locale, "nav.pages")}
         </h1>
-        <Link
-          href="/dashboard/pages/new"
-          className="inline-flex h-9 items-center justify-center rounded-md bg-[var(--bb-accent)] px-4 text-sm font-medium text-[var(--bb-accent-fg)] hover:opacity-90"
-        >
-          {t(locale, "pages.new")}
-        </Link>
+        <Button asChild>
+          <Link href="/dashboard/pages/new">{t(locale, "pages.new")}</Link>
+        </Button>
       </div>
       <ul className="divide-y divide-[var(--bb-border)] rounded-md border border-[var(--bb-border)] bg-[var(--bb-surface)]">
         {pages.map((page) => (

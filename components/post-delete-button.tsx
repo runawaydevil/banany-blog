@@ -88,7 +88,7 @@ export function PostDeleteButton({
         variant === "ghost" &&
           "text-[var(--bb-danger)] hover:bg-[var(--bb-surface-soft)] hover:text-[var(--bb-danger)]",
         variant === "outline" &&
-          "text-[var(--bb-danger)] hover:bg-[var(--bb-surface-soft)] hover:text-[var(--bb-danger)]",
+          "border-[color-mix(in_srgb,var(--bb-danger)_40%,var(--bb-border))] bg-[color-mix(in_srgb,var(--bb-danger)_10%,transparent)] text-[var(--bb-danger)] hover:bg-[color-mix(in_srgb,var(--bb-danger)_16%,transparent)] hover:text-[var(--bb-danger)]",
         className,
       )}
     >
