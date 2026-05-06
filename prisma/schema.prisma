@@ -71,14 +71,57 @@ enum PostContentFormat {
   MARKDOWN
 }
 
+enum ContentLocale {
+  en
+  pt
+}
+
+model PostGroup {
+  id        String           @id @default(cuid())
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  posts     PostTranslation[]
+  legacyPosts Post[]         @relation("LegacyPostGroup")
+}
+
+model PostTranslation {
+  id            String            @id @default(cuid())
+  groupId       String
+  group         PostGroup         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  locale        ContentLocale
+
+  type          PostType          @default(POST)
+  title         String?
+  slug          String            @unique
+  contentFormat PostContentFormat @default(RICH_TEXT)
+  content       String            @db.Text
+  published     Boolean           @default(false)
+  scheduledAt   DateTime?
+  publishedAt   DateTime?
+  notifySubscribersOnPublish Boolean @default(true)
+  pinned        Boolean           @default(false)
+  tags          String[]          @default([])
+  linkUrl       String?
+
+  previewToken  String?           @unique
+  previewEnabledAt DateTime?
+  previewRevokedAt DateTime?
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([groupId, locale])
+}
+
 model Post {
   id          String    @id @default(cuid())
+  groupId     String?   @unique
+  group       PostGroup? @relation("LegacyPostGroup", fields: [groupId], references: [id], onDelete: SetNull)
   type        PostType  @default(POST)
   title       String?
   slug        String    @unique
   contentFormat PostContentFormat @default(RICH_TEXT)
   content     String    @db.Text
-  excerpt     String?   @db.VarChar(300)
   published   Boolean   @default(false)
   scheduledAt DateTime?
   publishedAt DateTime?
@@ -86,6 +129,9 @@ model Post {
   pinned      Boolean   @default(false)
   tags        String[]  @default([])
   linkUrl     String?
+  previewToken String?  @unique
+  previewEnabledAt DateTime?
+  previewRevokedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   newsletterCampaigns NewsletterCampaign[]
@@ -127,6 +173,42 @@ enum NewsletterCampaignStatus {
   SENT
   PARTIAL
   FAILED
+}
+
+enum JobType {
+  NEWSLETTER_POST_PUBLISH
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+}
+
+model Job {
+  id         String    @id @default(cuid())
+  type       JobType
+  status     JobStatus @default(PENDING)
+
+  postId     String?
+  payload    Json?
+
+  runAt      DateTime  @default(now())
+  attempts   Int       @default(0)
+  maxAttempts Int      @default(8)
+
+  lockedAt   DateTime?
+  lockedBy   String?
+  lastError  String?
+
+  result     Json?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([type, postId])
+  @@index([status, runAt])
 }
 
 model NewsletterCampaign {

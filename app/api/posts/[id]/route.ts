@@ -7,12 +7,11 @@ import { slugBaseFromPostTitle } from "@/lib/slug-base";
 import { z } from "zod";
 import { PostContentFormat, PostType } from "@prisma/client";
 import { scheduledAtInPastMessage } from "@/lib/post-scheduled-at";
-import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
 import { reconcileMediaUsage } from "@/lib/media";
 import {
   evaluatePostPublishNewsletterEligibility,
-  sendAutomaticPostPublishNewsletter,
 } from "@/lib/post-publish-newsletter";
+import { enqueueNewsletterPostPublishJob } from "@/lib/jobs";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +26,6 @@ const patchSchema = z
     scheduledAt: z.string().datetime().nullable().optional(),
     notifySubscribersOnPublish: z.boolean().optional(),
     tags: z.array(z.string()).optional(),
-    excerpt: z.string().max(8000).nullable().optional(),
     linkUrl: z.string().url().nullable().optional().or(z.literal("")),
     pinned: z.boolean().optional(),
   })
@@ -92,9 +90,6 @@ export async function PATCH(
     }
   }
   if (data.linkUrl === "") data.linkUrl = null;
-  if (data.excerpt !== undefined) {
-    data.excerpt = finalizeExcerptForStorage(data.excerpt as string | null);
-  }
 
   const current = await prisma.post.findUnique({ where: { id } });
   if (!current) {
@@ -132,10 +127,9 @@ export async function PATCH(
     type: post.type,
     notifySubscribersOnPublish: post.notifySubscribersOnPublish,
   });
-  const newsletter =
-    newsletterEligibility.eligible
-      ? await sendAutomaticPostPublishNewsletter(post)
-      : undefined;
+  const newsletter = newsletterEligibility.eligible
+    ? { status: "queued" as const, ...(await enqueueNewsletterPostPublishJob(post.id)) }
+    : undefined;
 
   return NextResponse.json({
     ...post,

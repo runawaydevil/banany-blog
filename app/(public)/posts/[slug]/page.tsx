@@ -7,7 +7,7 @@ import { getEffectivePublicOrigin } from "@/lib/public-origin";
 import { NewsletterInline } from "@/components/newsletter-inline";
 import { PostContent } from "@/components/post-content";
 import { finalizeContentExcerptForStorage } from "@/lib/excerpt-plain";
-import { intlLocale, t } from "@/lib/i18n";
+import { intlLocale, normalizeLocale, t } from "@/lib/i18n";
 
 export async function generateMetadata({
   params,
@@ -15,22 +15,26 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [post, site] = await Promise.all([
-    prisma.post.findUnique({ where: { slug } }),
-    getSiteSettings(),
-  ]);
+  const site = await getSiteSettings();
+  const locale = normalizeLocale(site?.locale);
+  const post = await prisma.post.findUnique({ where: { slug } });
+  const tr = post?.groupId
+    ? await prisma.postTranslation.findFirst({
+        where: { groupId: post.groupId, locale, published: true },
+      })
+    : null;
+  const entity = tr ?? post;
 
-  if (!post || !post.published) {
+  if (!entity || !entity.published) {
     return { title: t(site?.locale, "common.notFound") };
   }
 
   const base = getEffectivePublicOrigin(site).replace(/\/$/, "");
-  const pageTitle = post.title?.trim() || t(site?.locale, "post.note");
+  const pageTitle = entity.title?.trim() || t(site?.locale, "post.note");
   return {
     title: pageTitle,
     description:
-      post.excerpt?.trim() ||
-      finalizeContentExcerptForStorage(post.content, post.contentFormat) ||
+      finalizeContentExcerptForStorage(entity.content, entity.contentFormat) ||
       undefined,
     openGraph: {
       title: pageTitle,
@@ -45,16 +49,21 @@ export default async function PostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [post, site] = await Promise.all([
-    prisma.post.findUnique({ where: { slug } }),
-    getSiteSettings(),
-  ]);
-  if (!post || !post.published) notFound();
+  const site = await getSiteSettings();
+  const locale = normalizeLocale(site?.locale);
+  const post = await prisma.post.findUnique({ where: { slug } });
+  const tr = post?.groupId
+    ? await prisma.postTranslation.findFirst({
+        where: { groupId: post.groupId, locale, published: true },
+      })
+    : null;
+  const entity = tr ?? post;
+  if (!entity || !entity.published) notFound();
 
-  const locale = site?.locale;
-  const date = toValidDate(post.publishedAt) ?? toValidDate(post.createdAt);
+  const date =
+    toValidDate(entity.publishedAt) ?? toValidDate(entity.createdAt);
   const dateIso =
-    toISOStringSafe(post.publishedAt) ?? toISOStringSafe(post.createdAt);
+    toISOStringSafe(entity.publishedAt) ?? toISOStringSafe(entity.createdAt);
 
   return (
     <article className="prose-bb">
@@ -64,9 +73,9 @@ export default async function PostPage({
       >
         {t(locale, "common.backHome")}
       </Link>
-      {post.title ? (
+      {entity.title ? (
         <h1 className="mt-6 font-[family-name:var(--bb-font-heading)] text-3xl leading-tight text-[var(--bb-heading)]">
-          {post.title}
+          {entity.title}
         </h1>
       ) : (
         <p className="mt-6 text-sm text-[var(--bb-text-muted)]">
@@ -83,8 +92,8 @@ export default async function PostPage({
             })}
           </time>
         ) : null}
-        <span>{t(locale, `postType.${post.type.toLowerCase()}`)}</span>
-        {post.tags.map((tag) => (
+        <span>{t(locale, `postType.${entity.type.toLowerCase()}`)}</span>
+        {entity.tags.map((tag) => (
           <span
             key={tag}
             className="rounded bg-[var(--bb-surface-soft)] px-1.5 py-0.5"
@@ -93,19 +102,19 @@ export default async function PostPage({
           </span>
         ))}
       </div>
-      {post.type === "LINK" && post.linkUrl ? (
+      {entity.type === "LINK" && entity.linkUrl ? (
         <a
-          href={post.linkUrl}
+          href={entity.linkUrl}
           className="mt-4 block text-[var(--bb-link)] hover:underline"
           target="_blank"
           rel="noopener noreferrer"
         >
-          {post.linkUrl}
+          {entity.linkUrl}
         </a>
       ) : null}
       <PostContent
-        content={post.content}
-        contentFormat={post.contentFormat}
+        content={entity.content}
+        contentFormat={entity.contentFormat}
         className="post-body mt-8"
       />
       {site?.newsletterEnabledPost ? (

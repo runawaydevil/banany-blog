@@ -7,12 +7,11 @@ import { nanoid } from "nanoid";
 import { z } from "zod";
 import { PostContentFormat, PostType } from "@prisma/client";
 import { scheduledAtInPastMessage } from "@/lib/post-scheduled-at";
-import { finalizeExcerptForStorage } from "@/lib/excerpt-plain";
 import { reconcileMediaUsage } from "@/lib/media";
 import {
   evaluatePostPublishNewsletterEligibility,
-  sendAutomaticPostPublishNewsletter,
 } from "@/lib/post-publish-newsletter";
+import { enqueueNewsletterPostPublishJob } from "@/lib/jobs";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +25,6 @@ const createSchema = z.object({
   scheduledAt: z.string().datetime().nullable().optional(),
   notifySubscribersOnPublish: z.boolean().optional(),
   tags: z.array(z.string()).optional(),
-  excerpt: z.string().max(8000).nullable().optional(),
   linkUrl: z.string().url().nullable().optional().or(z.literal("")),
   pinned: z.boolean().optional(),
 });
@@ -98,7 +96,6 @@ export async function POST(req: Request) {
       scheduledAt,
       notifySubscribersOnPublish: body.notifySubscribersOnPublish ?? true,
       tags: body.tags ?? [],
-      excerpt: finalizeExcerptForStorage(body.excerpt),
       linkUrl,
       pinned: body.pinned ?? false,
     },
@@ -116,10 +113,9 @@ export async function POST(req: Request) {
     type: post.type,
     notifySubscribersOnPublish: post.notifySubscribersOnPublish,
   });
-  const newsletter =
-    newsletterEligibility.eligible
-      ? await sendAutomaticPostPublishNewsletter(post)
-      : undefined;
+  const newsletter = newsletterEligibility.eligible
+    ? { status: "queued" as const, ...(await enqueueNewsletterPostPublishJob(post.id)) }
+    : undefined;
 
   return NextResponse.json({
     ...post,

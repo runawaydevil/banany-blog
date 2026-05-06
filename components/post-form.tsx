@@ -16,7 +16,6 @@ import { PostMetadataPanel } from "@/components/editor/post-metadata-panel";
 import { PostDeleteButton } from "@/components/post-delete-button";
 import type { SaveUiState } from "@/components/editor/save-state-indicator";
 import {
-  finalizeExcerptForStorage,
   hasRenderablePostContent,
 } from "@/lib/excerpt-plain";
 import { t, tm } from "@/lib/i18n";
@@ -26,7 +25,8 @@ import { toast } from "sonner";
 type PostContentFormatValue = "RICH_TEXT" | "MARKDOWN";
 
 type PostPublishNewsletterUiResult = {
-  status: "sent" | "partial" | "skipped";
+  status: "queued" | "sent" | "partial" | "skipped";
+  enqueued?: boolean;
   delivered?: number;
   failures?: number;
   reason?:
@@ -51,6 +51,11 @@ function toastPublishNewsletterResult(
   newsletter: PostPublishNewsletterUiResult | undefined,
 ) {
   if (!newsletter) return;
+
+  if (newsletter.status === "queued") {
+    toast.message(t(locale, "editor.newsletterQueued"));
+    return;
+  }
 
   if (newsletter.status === "sent") {
     toast.success(t(locale, "editor.newsletterSent"));
@@ -93,7 +98,6 @@ export function PostForm({ initial }: { initial?: Post }) {
   const [type, setType] = useState<PostType>(initial?.type ?? "POST");
   const [tags, setTags] = useState((initial?.tags ?? []).join(", "));
   const [linkUrl, setLinkUrl] = useState(initial?.linkUrl ?? "");
-  const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
   const [published, setPublished] = useState(initial?.published ?? true);
   const [notifySubscribersOnPublish, setNotifySubscribersOnPublish] = useState(
     initial?.notifySubscribersOnPublish ?? true,
@@ -121,7 +125,6 @@ export function PostForm({ initial }: { initial?: Post }) {
       type,
       tags: tagList,
       linkUrl: linkUrl.trim() || null,
-      excerpt: finalizeExcerptForStorage(excerpt),
       published,
       notifySubscribersOnPublish,
       pinned,
@@ -134,7 +137,6 @@ export function PostForm({ initial }: { initial?: Post }) {
     type,
     tags,
     linkUrl,
-    excerpt,
     published,
     notifySubscribersOnPublish,
     pinned,
@@ -237,6 +239,30 @@ export function PostForm({ initial }: { initial?: Post }) {
     return () => clearTimeout(t);
   }, [initial, isDirty, fingerprint, save]);
 
+  const copyPreviewLink = useCallback(
+    async (regenerate: boolean) => {
+      if (!initial?.id) return;
+      try {
+        const res = await fetch(`/api/posts/${initial.id}/preview-token`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ regenerate }),
+        });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          throw new Error(d.error || "Request failed");
+        }
+        const d = (await res.json()) as { token: string };
+        const url = `${window.location.origin}/preview/${encodeURIComponent(d.token)}`;
+        await navigator.clipboard.writeText(url);
+        toast.success(t(locale, "editor.previewLinkCopied"));
+      } catch {
+        toast.error(t(locale, "editor.previewLinkFailed"));
+      }
+    },
+    [initial?.id, locale],
+  );
+
   const metadataPanel = (
     <PostMetadataPanel
       type={type}
@@ -292,6 +318,21 @@ export function PostForm({ initial }: { initial?: Post }) {
                 <div className="my-1 border-t border-[var(--bb-border)]" />
               </>
             ) : null}
+            <button
+              type="button"
+              className="block w-full rounded-md px-2 py-1.5 text-left text-[var(--bb-text)] hover:bg-[var(--bb-surface-soft)]"
+              onClick={() => void copyPreviewLink(false)}
+            >
+              {t(locale, "editor.copyPreviewLink")}
+            </button>
+            <button
+              type="button"
+              className="block w-full rounded-md px-2 py-1.5 text-left text-[var(--bb-text)] hover:bg-[var(--bb-surface-soft)]"
+              onClick={() => void copyPreviewLink(true)}
+            >
+              {t(locale, "editor.regeneratePreviewLink")}
+            </button>
+            <div className="my-1 border-t border-[var(--bb-border)]" />
             <PostDeleteButton
               postId={initial.id}
               postTitle={initial.title}
@@ -310,7 +351,9 @@ export function PostForm({ initial }: { initial?: Post }) {
   const canvas = (
     <>
       {err ? (
-        <p className="mb-6 text-sm text-[var(--bb-danger)]">{err}</p>
+        <p aria-live="polite" className="mb-6 text-sm text-[var(--bb-danger)]">
+          {err}
+        </p>
       ) : null}
       <input
         aria-label={t(locale, "editor.titlePlaceholder")}
@@ -318,15 +361,6 @@ export function PostForm({ initial }: { initial?: Post }) {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         className="mb-1 w-full border-none bg-transparent px-0 py-1 text-[2.15rem] font-[family-name:var(--bb-font-heading)] font-medium leading-[1.15] tracking-tight text-[var(--bb-heading)] shadow-none placeholder:text-[var(--bb-text-muted)]/55 focus:outline-none focus:ring-0 sm:text-[2.5rem]"
-      />
-      <textarea
-        aria-label={t(locale, "editor.excerptPlaceholder")}
-        placeholder={t(locale, "editor.excerptPlaceholder")}
-        value={excerpt}
-        onChange={(e) => setExcerpt(e.target.value)}
-        maxLength={300}
-        rows={2}
-        className="mb-8 w-full resize-y border-none bg-transparent px-0 py-1 text-[0.95rem] leading-relaxed text-[var(--bb-text-muted)] shadow-none placeholder:text-[var(--bb-text-muted)]/45 focus:outline-none focus:ring-0"
       />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <span className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--bb-text-muted)]">

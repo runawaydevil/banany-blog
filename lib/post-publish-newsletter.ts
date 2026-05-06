@@ -56,19 +56,14 @@ function escapeHtml(value: string): string {
 }
 
 export function derivePostPublishTeaser(input: {
-  excerpt: string | null | undefined;
   content: string;
   contentFormat?: PostContentFormat | string | null | undefined;
 }): string | null {
-  return (
-    finalizeExcerptForStorage(input.excerpt) ??
-    finalizeContentExcerptForStorage(input.content, input.contentFormat)
-  );
+  return finalizeContentExcerptForStorage(input.content, input.contentFormat);
 }
 
 export function buildPostPublishNewsletterContent(input: {
   title: string | null | undefined;
-  excerpt: string | null | undefined;
   content: string;
   contentFormat?: PostContentFormat | string | null | undefined;
   locale: string | null | undefined;
@@ -81,7 +76,6 @@ export function buildPostPublishNewsletterContent(input: {
   teaser: string | null;
 } {
   const teaser = derivePostPublishTeaser({
-    excerpt: input.excerpt,
     content: input.content,
     contentFormat: input.contentFormat,
   });
@@ -145,7 +139,6 @@ export async function sendAutomaticPostPublishNewsletter(input: {
   slug: string;
   content: string;
   contentFormat?: PostContentFormat | string | null | undefined;
-  excerpt: string | null;
 }): Promise<AutomaticPostNewsletterResult> {
   let campaignId: string | undefined;
 
@@ -162,7 +155,6 @@ export async function sendAutomaticPostPublishNewsletter(input: {
     const locale = normalizeLocale(site.locale);
     const content = buildPostPublishNewsletterContent({
       title: input.title,
-      excerpt: input.excerpt,
       content: input.content,
       contentFormat: input.contentFormat,
       locale,

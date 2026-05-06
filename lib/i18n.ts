@@ -35,6 +35,9 @@ const messages: Record<Locale, Record<string, string>> = {
     "common.backHome": "← Home",
     "common.backToSignIn": "Back to sign in",
     "i18n.fallbackProbe": "English fallback",
+    "preview.banner": "Preview link — this page is not indexed.",
+    "preview.draft": "Draft",
+    "preview.published": "Published",
 
     "footer.madeWith": "Made with",
     "footer.tagline": "— a small home for small-web writing.",
@@ -255,8 +258,6 @@ const messages: Record<Locale, Record<string, string>> = {
     "editor.contentPlaceholder": "Start writing…",
     "editor.titlePlaceholder": "Title",
     "editor.pageTitlePlaceholder": "Page title",
-    "editor.excerptPlaceholder":
-      "Optional excerpt — plain text, max 300 characters (used for SEO description)",
     "editor.pageContentPlaceholder": "Page content…",
     "editor.linkPrompt": "URL",
     "editor.formatLabel": "Format",
@@ -282,6 +283,12 @@ const messages: Record<Locale, Record<string, string>> = {
     "editor.postSaved": "Post saved.",
     "editor.postUpdated": "Post updated.",
     "editor.postPublished": "Post published.",
+    "editor.newsletterQueued":
+      "Post published. Newsletter will be sent in the background.",
+    "editor.copyPreviewLink": "Copy preview link",
+    "editor.regeneratePreviewLink": "Regenerate preview link",
+    "editor.previewLinkCopied": "Preview link copied.",
+    "editor.previewLinkFailed": "Could not generate preview link.",
     "editor.newsletterSent": "Subscribers were notified.",
     "editor.newsletterPartial":
       "Post published. Newsletter sent with {failures} failure(s).",
@@ -350,6 +357,9 @@ const messages: Record<Locale, Record<string, string>> = {
     "common.done": "Concluir",
     "common.backHome": "← Início",
     "common.backToSignIn": "Voltar para entrar",
+    "preview.banner": "Link de prévia — esta página não é indexada.",
+    "preview.draft": "Rascunho",
+    "preview.published": "Publicado",
 
     "footer.madeWith": "Feito com",
     "footer.tagline": "— um pequeno lar para escrita small-web.",
@@ -578,8 +588,6 @@ const messages: Record<Locale, Record<string, string>> = {
     "editor.contentPlaceholder": "Comece a escrever…",
     "editor.titlePlaceholder": "Título",
     "editor.pageTitlePlaceholder": "Título da página",
-    "editor.excerptPlaceholder":
-      "Resumo opcional — texto puro, máximo de 300 caracteres (usado como description de SEO)",
     "editor.pageContentPlaceholder": "Conteúdo da página…",
     "editor.linkPrompt": "URL",
     "editor.formatLabel": "Formato",
@@ -606,6 +614,12 @@ const messages: Record<Locale, Record<string, string>> = {
     "editor.postSaved": "Post salvo.",
     "editor.postUpdated": "Post atualizado.",
     "editor.postPublished": "Post publicado.",
+    "editor.newsletterQueued":
+      "Post publicado. A newsletter será enviada em background.",
+    "editor.copyPreviewLink": "Copiar link de prévia",
+    "editor.regeneratePreviewLink": "Regenerar link de prévia",
+    "editor.previewLinkCopied": "Link de prévia copiado.",
+    "editor.previewLinkFailed": "Não foi possível gerar o link de prévia.",
     "editor.newsletterSent": "Os inscritos foram notificados.",
     "editor.newsletterPartial":
       "Post publicado. Newsletter enviada com {failures} falha(s).",

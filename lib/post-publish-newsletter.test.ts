@@ -109,28 +109,17 @@ describe("evaluatePostPublishNewsletterEligibility", () => {
 });
 
 describe("derivePostPublishTeaser", () => {
-  it("uses the explicit excerpt when present", () => {
+  it("derives a teaser from the content", () => {
     expect(
       derivePostPublishTeaser({
-        excerpt: "<p> Short excerpt </p>",
-        content: "<p>Body fallback</p>",
-      }),
-    ).toBe("Short excerpt");
-  });
-
-  it("derives a teaser from the content when excerpt is missing", () => {
-    expect(
-      derivePostPublishTeaser({
-        excerpt: null,
         content: "<p>Hello <strong>world</strong></p>",
       }),
     ).toBe("Hello world");
   });
 
-  it("derives a teaser from markdown when excerpt is missing", () => {
+  it("derives a teaser from markdown", () => {
     expect(
       derivePostPublishTeaser({
-        excerpt: null,
         content: "# Launch\n\n**Bold** move with ![Cover](/uploads/cover.webp)",
         contentFormat: "MARKDOWN",
       }),
@@ -164,7 +153,6 @@ describe("buildPostPublishNewsletterContent", () => {
       title: "Fresh release",
       slug: "fresh-release",
       content: "<p>Hello world</p>",
-      excerpt: null,
     });
 
     expect(result).toEqual({
@@ -174,11 +162,10 @@ describe("buildPostPublishNewsletterContent", () => {
     });
   });
 
-  it("builds localized English content from an explicit excerpt", () => {
+  it("builds localized English content from derived teaser", () => {
     const result = buildPostPublishNewsletterContent({
       title: "Fresh release",
-      excerpt: "<p>Everything changed.</p>",
-      content: "<p>Full body</p>",
+      content: "<p>Everything changed.</p>",
       locale: "en",
       postUrl: "https://example.com/posts/fresh-release",
     });
@@ -194,7 +181,6 @@ describe("buildPostPublishNewsletterContent", () => {
   it("builds localized Portuguese content and falls back to body-derived teaser", () => {
     const result = buildPostPublishNewsletterContent({
       title: null,
-      excerpt: null,
       content: "# Sem título\n\nUm resumo direto do post.",
       contentFormat: "MARKDOWN",
       locale: "pt",
@@ -212,8 +198,7 @@ describe("buildPostPublishNewsletterContent", () => {
   it("keeps the automatic email compatible with the themed renderer and locale chrome", () => {
     const content = buildPostPublishNewsletterContent({
       title: "Fresh release",
-      excerpt: "Everything changed.",
-      content: "<p>Full body</p>",
+      content: "<p>Everything changed.</p>",
       locale: "pt",
       postUrl: "https://example.com/posts/fresh-release",
     });

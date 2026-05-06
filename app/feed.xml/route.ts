@@ -3,6 +3,8 @@ import { getSiteSettings } from "@/lib/site";
 import { getEffectivePublicOrigin } from "@/lib/public-origin";
 import { toISOStringSafe } from "@/lib/dates";
 import { t } from "@/lib/i18n";
+import { finalizeContentExcerptForStorage } from "@/lib/excerpt-plain";
+import { normalizeLocale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -27,13 +29,41 @@ export async function GET() {
     take: 50,
   });
 
+  const locale = normalizeLocale(site.locale);
+  const groupIds = posts.map((p) => p.groupId).filter(Boolean) as string[];
+  const translations =
+    groupIds.length > 0
+      ? await prisma.postTranslation.findMany({
+          where: { groupId: { in: groupIds }, locale, published: true },
+          select: {
+            groupId: true,
+            slug: true,
+            title: true,
+            content: true,
+            contentFormat: true,
+            publishedAt: true,
+            createdAt: true,
+          },
+        })
+      : [];
+  const byGroup = new Map(translations.map((tr) => [tr.groupId, tr]));
+
   const items = posts
     .map((p) => {
-      const link = `${base}/posts/${p.slug}`;
-      const pub = toISOStringSafe(p.publishedAt) ?? toISOStringSafe(p.createdAt);
-      const title = escapeXml(p.title || t(site.locale, "post.note"));
+      const tr = p.groupId ? byGroup.get(p.groupId) : undefined;
+      const slug = tr?.slug ?? p.slug;
+      const titleRaw = tr?.title ?? p.title;
+      const content = tr?.content ?? p.content;
+      const contentFormat = tr?.contentFormat ?? p.contentFormat;
+      const pub =
+        toISOStringSafe(tr?.publishedAt ?? p.publishedAt) ??
+        toISOStringSafe(tr?.createdAt ?? p.createdAt);
+
+      const link = `${base}/posts/${slug}`;
+      const title = escapeXml(titleRaw || t(site.locale, "post.note"));
+      const derived = finalizeContentExcerptForStorage(content, contentFormat);
       const desc = escapeXml(
-        (p.excerpt || "").slice(0, 500) || p.title || "",
+        (derived || "").slice(0, 500) || titleRaw || "",
       );
       return `
     <item>

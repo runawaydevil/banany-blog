@@ -49,14 +49,20 @@ export function PostMetadataPanel({
   onPinnedChange: (v: boolean) => void;
 }) {
   const locale = useCurrentLocale();
+  const typeId = "post-type";
+  const tagsId = "post-tags";
+  const linkUrlId = "post-link-url";
+  const scheduleId = "post-scheduled-at";
+  const notifyHelpId = "notify-subscribers-help";
 
   return (
     <>
       <div className="space-y-1.5">
-        <Label className="text-[var(--bb-text-muted)]">
+        <Label htmlFor={typeId} className="text-[var(--bb-text-muted)]">
           {t(locale, "editor.type")}
         </Label>
         <select
+          id={typeId}
           className="flex h-9 w-full rounded-md border border-[var(--bb-border)]/80 bg-[var(--bb-input-bg)] px-2 text-[var(--bb-input-text)]"
           value={type}
           onChange={(e) => onTypeChange(e.target.value as PostType)}
@@ -69,10 +75,11 @@ export function PostMetadataPanel({
         </select>
       </div>
       <div className="space-y-1.5">
-        <Label className="text-[var(--bb-text-muted)]">
+        <Label htmlFor={tagsId} className="text-[var(--bb-text-muted)]">
           {t(locale, "editor.tags")}
         </Label>
         <Input
+          id={tagsId}
           value={tags}
           onChange={(e) => onTagsChange(e.target.value)}
           placeholder={t(locale, "editor.tagsPlaceholder")}
@@ -81,10 +88,11 @@ export function PostMetadataPanel({
       </div>
       {type === "LINK" ? (
         <div className="space-y-1.5">
-          <Label className="text-[var(--bb-text-muted)]">
+          <Label htmlFor={linkUrlId} className="text-[var(--bb-text-muted)]">
             {t(locale, "editor.linkUrl")}
           </Label>
           <Input
+            id={linkUrlId}
             value={linkUrl}
             onChange={(e) => onLinkUrlChange(e.target.value)}
             placeholder="https://"
@@ -93,10 +101,11 @@ export function PostMetadataPanel({
         </div>
       ) : null}
       <div className="space-y-1.5">
-        <Label className="text-[var(--bb-text-muted)]">
+        <Label htmlFor={scheduleId} className="text-[var(--bb-text-muted)]">
           {t(locale, "editor.schedule")}
         </Label>
         <Input
+          id={scheduleId}
           type="datetime-local"
           value={scheduledAt}
           min={scheduledAtMin}
@@ -127,6 +136,7 @@ export function PostMetadataPanel({
                 onNotifySubscribersOnPublishChange(e.target.checked)
               }
               className="rounded border-[var(--bb-border)]"
+              aria-describedby={notifyHelpId}
             />
             <Label
               htmlFor="notify-subscribers-on-publish"
@@ -135,7 +145,10 @@ export function PostMetadataPanel({
               {t(locale, "editor.notifySubscribersOnPublish")}
             </Label>
           </div>
-          <p className="text-xs text-[var(--bb-text-muted)]">
+          <p
+            id={notifyHelpId}
+            className="text-xs text-[var(--bb-text-muted)]"
+          >
             {t(locale, "editor.notifySubscribersOnPublishHelp")}
           </p>
         </div>

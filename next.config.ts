@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 function contentSecurityPolicy(): string {
+  const isDev = process.env.NODE_ENV !== "production";
+
   const directives = [
     "default-src 'self'",
     "base-uri 'self'",
@@ -10,7 +12,10 @@ function contentSecurityPolicy(): string {
     "font-src 'self' data:",
     "connect-src 'self'",
     "style-src 'self' 'unsafe-inline'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    // Next.js dev tooling (Turbopack/HMR) may require eval; avoid in production.
+    isDev
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+      : "script-src 'self' 'unsafe-inline'",
   ];
   return directives.join("; ");
 }
