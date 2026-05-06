@@ -40,7 +40,7 @@
     "@tiptap/extension-placeholder": "^3.22.1",
     "@tiptap/pm": "^3.22.1",
     "@tiptap/react": "^3.22.1",
-    "@tiptap/starter-kit": "^3.22.1",
+    "@tiptap/starter-kit": "^3.22.5",
     "@tiptap/suggestion": "^3.22.2",
     "argon2": "^0.44.0",
     "bcryptjs": "^3.0.3",
